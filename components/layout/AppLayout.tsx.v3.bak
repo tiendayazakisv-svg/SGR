@@ -1,0 +1,33 @@
+"use client";
+
+import { Box } from "@mui/material";
+import AutoLogout from "@/components/auth/AutoLogout";
+import AppNavbar from "./AppNavbar";
+import AppSidebar from "./AppSidebar";
+
+interface Props {
+  children: React.ReactNode;
+}
+
+export default function AppLayout({ children }: Props) {
+  return (
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      <AutoLogout />
+      <AppSidebar />
+
+      <Box sx={{ flex: 1 }}>
+        <AppNavbar />
+
+        <Box
+          sx={{
+            p: 3,
+            backgroundColor: "background.default",
+            minHeight: "calc(100vh - 64px)",
+          }}
+        >
+          {children}
+        </Box>
+      </Box>
+    </Box>
+  );
+}

@@ -1,0 +1,76 @@
+param(
+  [int]$Patch,
+  [string]$Version,
+  [string]$Description,
+  [switch]$Bump
+)
+
+$ErrorActionPreference = "Stop"
+
+$projectRoot = Split-Path -Parent $PSScriptRoot
+$patchFile = Join-Path $projectRoot "config\systemPatch.json"
+
+if (-not (Test-Path $patchFile)) {
+  throw "No se encontro el archivo de parche: $patchFile"
+}
+
+$patchInfo = Get-Content -Path $patchFile -Raw | ConvertFrom-Json
+
+if ($Bump) {
+  $patchInfo.patch = [int]$patchInfo.patch + 1
+}
+
+if ($PSBoundParameters.ContainsKey("Patch")) {
+  if ($Patch -lt 1) {
+    throw "El numero de parche debe ser mayor o igual a 1."
+  }
+
+  $patchInfo.patch = $Patch
+}
+
+if ($PSBoundParameters.ContainsKey("Version")) {
+  if ([string]::IsNullOrWhiteSpace($Version)) {
+    throw "La version no puede estar vacia."
+  }
+
+  $patchInfo.version = $Version.Trim()
+}
+
+if ($PSBoundParameters.ContainsKey("Description")) {
+  if ([string]::IsNullOrWhiteSpace($Description)) {
+    throw "La descripcion no puede estar vacia."
+  }
+
+  $patchInfo.description = $Description.Trim()
+}
+
+$patchInfo.label = "P-{0:D4}" -f [int]$patchInfo.patch
+$patchInfo.updatedAt = Get-Date -Format "yyyy-MM-dd"
+
+if (-not ($patchInfo.PSObject.Properties.Name -contains "history")) {
+  $patchInfo | Add-Member -MemberType NoteProperty -Name history -Value @()
+}
+
+$entry = [pscustomobject]@{
+  label = [string]$patchInfo.label
+  version = [string]$patchInfo.version
+  updatedAt = [string]$patchInfo.updatedAt
+  description = [string]$patchInfo.description
+}
+
+$history = @($patchInfo.history | Where-Object { $_.label -ne $entry.label })
+$history = @($entry) + $history
+$patchInfo.history = @(
+  $history |
+    Where-Object { $_.label -and $_.version -and $_.updatedAt } |
+    Sort-Object `
+      @{ Expression = { [int](($_.label -replace '\D', '') -as [int]) }; Descending = $true },
+      @{ Expression = { $_.updatedAt }; Descending = $true } |
+    Select-Object -First 50
+)
+
+$json = $patchInfo | ConvertTo-Json -Depth 8
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($patchFile, $json + [Environment]::NewLine, $utf8NoBom)
+
+Write-Host "Parche actualizado: $($patchInfo.label) | Version $($patchInfo.version) | Fecha $($patchInfo.updatedAt)"

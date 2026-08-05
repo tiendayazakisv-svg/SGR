@@ -1,17 +1,35 @@
 {
-  "name": "sistema-gestion-recorridos",
+  "name": "sgr",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "patch:bump": "powershell -ExecutionPolicy Bypass -File ./scripts/update-patch.ps1 -Bump",
+    "patch:set": "powershell -ExecutionPolicy Bypass -File ./scripts/update-patch.ps1",
+    "admin:reset": "node ./scripts/reset-admin-password.mjs"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@hookform/resolvers": "^5.4.0",
+    "@mui/icons-material": "^9.1.1",
+    "@mui/material": "^9.1.2",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.110.0",
+    "@tanstack/react-query": "^5.101.2",
+    "axios": "^1.18.1",
+    "dayjs": "^1.11.21",
+    "lucide-react": "^1.23.0",
     "next": "16.2.9",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-hook-form": "^7.80.0",
+    "react-hot-toast": "^2.6.0",
+    "recharts": "^3.9.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

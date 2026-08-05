@@ -1,0 +1,108 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
+import Drawer from "@mui/material/Drawer";
+import Toolbar from "@mui/material/Toolbar";
+import List from "@mui/material/List";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+
+import { MENU } from "@/config/menu";
+import type { AccessRole } from "@/services/abastecimiento/abastecimiento-db.service";
+import { listAccessUsersFromDb } from "@/services/abastecimiento/abastecimiento-db.service";
+import { getCurrentUser } from "@/services/auth/auth.service";
+
+const drawerWidth = 260;
+
+export default function AppSidebar() {
+  const [role, setRole] = useState<AccessRole | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    Promise.all([getCurrentUser(), listAccessUsersFromDb()]).then(([auth, users]) => {
+      if (!active) {
+        return;
+      }
+
+      const email = auth.data.user?.email?.toLowerCase();
+      const access = users?.find((user) => user.email.toLowerCase() === email);
+      setRole(access?.rol ?? null);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const visibleMenu = MENU.filter((item) => !item.adminOnly || role === "administrador");
+
+  return (
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: drawerWidth,
+        flexShrink: 0,
+        "& .MuiDrawer-paper": {
+          width: drawerWidth,
+          boxSizing: "border-box",
+          borderRight: "1px solid",
+          borderColor: "divider",
+        },
+      }}
+    >
+      <Toolbar>
+        <Box sx={{ width: "100%" }}>
+          <Typography
+            variant="h4"
+            component="h1"
+            sx={{
+              fontWeight: 700,
+              color: "primary.main",
+            }}
+          >
+            SGR
+          </Typography>
+
+          <Typography
+            variant="caption"
+            component="p"
+            color="text.secondary"
+          >
+            Sistema de Gestión de Recorridos
+          </Typography>
+        </Box>
+      </Toolbar>
+
+      <List sx={{ mt: 1 }}>
+        {visibleMenu.map((item) => {
+          const Icon = item.icon;
+
+          return (
+            <ListItemButton
+              key={item.path}
+              component={Link}
+              href={item.path}
+              sx={{
+                mx: 1,
+                borderRadius: 2,
+                mb: 0.5,
+              }}
+            >
+              <ListItemIcon>
+                <Icon fontSize="small" />
+              </ListItemIcon>
+
+              <ListItemText primary={item.title} />
+            </ListItemButton>
+          );
+        })}
+      </List>
+    </Drawer>
+  );
+}

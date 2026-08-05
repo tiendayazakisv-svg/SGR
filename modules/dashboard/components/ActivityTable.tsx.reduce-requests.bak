@@ -1,0 +1,239 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Chip from "@mui/material/Chip";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
+import type { SupplyAssignment, SupplyCrewGroup, SupplyPerson } from "@/types/abastecimiento";
+import {
+  formatRunStatus,
+  getStatusColor,
+  SUPPLY_TIMEZONE,
+} from "@/services/abastecimiento/abastecimiento.service";
+import type { DbKioskRun } from "@/services/abastecimiento/abastecimiento-db.service";
+import {
+  listAccessUsersFromDb,
+  listAssignmentsFromDb,
+  listClosedKioskRunsFromDb,
+  listOpenKioskRunsFromDb,
+  listPersonnelFromDb,
+} from "@/services/abastecimiento/abastecimiento-db.service";
+import { getCurrentUser } from "@/services/auth/auth.service";
+
+export default function ActivityTable() {
+  const [runs, setRuns] = useState<DbKioskRun[]>([]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      const today = getToday();
+      const [
+        openRuns,
+        closedRuns,
+        assignments,
+        people,
+        accessUsers,
+        auth,
+      ] = await Promise.all([
+        listOpenKioskRunsFromDb(),
+        listClosedKioskRunsFromDb({
+          desde: startOfLocalDay(today).toISOString(),
+          hasta: nextLocalDay(today).toISOString(),
+        }),
+        listAssignmentsFromDb(),
+        listPersonnelFromDb(),
+        listAccessUsersFromDb(),
+        getCurrentUser(),
+      ]);
+
+      if (!active) {
+        return;
+      }
+
+      const email = auth.data.user?.email?.toLowerCase();
+      const access =
+        accessUsers?.find((user) => user.email.toLowerCase() === email) ?? null;
+      const groupFilter =
+        access?.rol === "supervisor" && access.grupo ? access.grupo : "todos";
+      const allRuns = [...(openRuns ?? []), ...(closedRuns ?? [])];
+
+      setRuns(
+        filterRunsByGroup(
+          allRuns,
+          assignments ?? [],
+          people ?? [],
+          groupFilter
+        ).slice(0, 8)
+      );
+    }
+
+    load();
+    const interval = window.setInterval(load, 10000);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  return (
+    <Paper sx={{ p: 3 }}>
+      <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+        Bitácora del turno
+      </Typography>
+
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>Hora</TableCell>
+            <TableCell>Equipo</TableCell>
+            <TableCell>Tolvas</TableCell>
+            <TableCell>Ideal</TableCell>
+            <TableCell>Llenado</TableCell>
+            <TableCell>Reparto</TableCell>
+            <TableCell>Total real</TableCell>
+            <TableCell>Variacion</TableCell>
+            <TableCell>Estado</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {runs.map((run) => (
+            <TableRow key={run.id}>
+              <TableCell>{formatTime(run.retornoAt ?? run.salidaAt ?? run.entradaAt)}</TableCell>
+              <TableCell>{run.lineas.join("/")}</TableCell>
+              <TableCell>{run.tolvas}</TableCell>
+              <TableCell>{run.tiempoObjetivoMin} min</TableCell>
+              <TableCell>{formatOptionalMinutes(run.tiempoLlenadoMin)}</TableCell>
+              <TableCell>{formatOptionalMinutes(run.tiempoRepartoMin)}</TableCell>
+              <TableCell>{run.tiempoTotalMin ? `${run.tiempoTotalMin} min` : "En proceso"}</TableCell>
+              <TableCell>
+                {run.tiempoTotalMin
+                  ? formatVariation(run.tiempoTotalMin, run.tiempoObjetivoMin)
+                  : "Pendiente"}
+              </TableCell>
+              <TableCell>
+                {run.cumplimiento ? (
+                  <Chip
+                    size="small"
+                    color={getStatusColor(run.cumplimiento)}
+                    label={formatRunStatus(run.cumplimiento)}
+                  />
+                ) : (
+                  <Chip size="small" label={formatOpenState(run.estado)} />
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Paper>
+  );
+}
+
+function formatOpenState(state: DbKioskRun["estado"]) {
+  const labels: Record<DbKioskRun["estado"], string> = {
+    llenando_carro: "Llenando carro",
+    repartiendo_tolvas: "Repartiendo",
+    cerrado: "Cerrado",
+  };
+
+  return labels[state];
+}
+
+function formatOptionalMinutes(value?: number) {
+  return typeof value === "number" ? `${value} min` : "Pendiente";
+}
+
+function formatVariation(real: number, ideal: number) {
+  const diff = real - ideal;
+
+  if (diff === 0) {
+    return "0 min";
+  }
+
+  return diff > 0 ? `+${diff} min` : `${diff} min`;
+}
+
+function filterRunsByGroup(
+  runs: DbKioskRun[],
+  assignments: SupplyAssignment[],
+  people: SupplyPerson[],
+  groupFilter: "todos" | SupplyCrewGroup
+) {
+  if (groupFilter === "todos") {
+    return runs;
+  }
+
+  return runs.filter((run) => {
+    const assignment = findHistoricalAssignment(
+      run,
+      assignments,
+      formatDate(run.entradaAt),
+      getShiftForTimestamp(run.entradaAt)
+    );
+    const person = assignment
+      ? people.find((item) => item.id === assignment.almacenistaId)
+      : undefined;
+
+    return person?.grupo === groupFilter;
+  });
+}
+
+function findHistoricalAssignment(
+  run: DbKioskRun,
+  assignments: SupplyAssignment[],
+  fecha: string,
+  turnoId: string
+) {
+  return assignments.find((assignment) => {
+    const startsBefore = assignment.vigenteDesde <= fecha;
+    const endsAfter = !assignment.vigenteHasta || assignment.vigenteHasta >= fecha;
+    const sameShift = assignment.turnoId === turnoId;
+    const hasLine = run.lineas.some((line) => assignment.lineas.includes(line));
+
+    return startsBefore && endsAfter && sameShift && hasLine;
+  });
+}
+
+function getShiftForTimestamp(value: string) {
+  const [hour, minute] = formatTime(value).split(":").map(Number);
+  const total = hour * 60 + minute;
+  return total < 14 * 60 + 15 ? "turno-a" : "turno-b";
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("en-CA", {
+    timeZone: SUPPLY_TIMEZONE,
+  });
+}
+
+function getToday() {
+  return new Date().toLocaleDateString("en-CA", {
+    timeZone: SUPPLY_TIMEZONE,
+  });
+}
+
+function startOfLocalDay(date: string) {
+  return new Date(`${date}T00:00:00-06:00`);
+}
+
+function nextLocalDay(date: string) {
+  const parsed = startOfLocalDay(date);
+  parsed.setDate(parsed.getDate() + 1);
+  return parsed;
+}
+
+function formatTime(value: string) {
+  return new Date(value).toLocaleTimeString("es-SV", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: SUPPLY_TIMEZONE,
+  });
+}

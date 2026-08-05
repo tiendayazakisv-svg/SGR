@@ -1,0 +1,197 @@
+import {
+  AccessTime,
+  Inventory2,
+  LocalShipping,
+  QrCodeScanner,
+  Timeline,
+} from "@mui/icons-material";
+import { Box, Paper, Stack, Typography } from "@mui/material";
+import LoginCard from "@/components/auth/LoginCard";
+
+export default function LoginPage() {
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", lg: "1.1fr 0.9fr" },
+        bgcolor: "#e9eef4",
+      }}
+    >
+      <Box
+        sx={{
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          overflow: "hidden",
+          p: { xs: 3, md: 6 },
+          color: "common.white",
+          bgcolor: "#0a4f5f",
+        }}
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(135deg, rgba(2,48,71,0.98), rgba(10,79,95,0.92), rgba(25,118,210,0.74))",
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            width: 540,
+            height: 540,
+            right: -180,
+            top: -140,
+            borderRadius: "50%",
+            border: "90px solid rgba(255,255,255,0.08)",
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            left: { xs: -80, md: 70 },
+            bottom: { xs: -110, md: -80 },
+            width: 360,
+            height: 360,
+            borderRadius: "50%",
+            border: "1px solid rgba(255,255,255,0.18)",
+          }}
+        />
+
+        <Stack
+          spacing={4}
+          sx={{
+            position: "relative",
+            width: "100%",
+            maxWidth: 760,
+          }}
+        >
+          <Box>
+            <Box
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 0.75,
+                mb: 2,
+                px: 1.25,
+                py: 0.55,
+                borderRadius: 99,
+                color: "common.white",
+                bgcolor: "rgba(255,255,255,0.14)",
+              }}
+            >
+              <QrCodeScanner fontSize="small" />
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                Kiosko y recorridos de abastecimiento.
+              </Typography>
+            </Box>
+            <Typography
+              component="h1"
+              sx={{
+                fontSize: { xs: 38, md: 58 },
+                lineHeight: 1,
+                fontWeight: 900,
+                maxWidth: 680,
+              }}
+            >
+              Sistema de Gestion de Recorridos
+            </Typography>
+            <Typography
+              sx={{
+                mt: 2,
+                color: "rgba(255,255,255,0.82)",
+                fontSize: 18,
+                maxWidth: 560,
+              }}
+            >
+              Control de tiempo de abastecimiento y cumplimiento.
+            </Typography>
+          </Box>
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+              gap: 2,
+            }}
+          >
+            <Metric icon={<Inventory2 />} title="Entrada" value="Tolvas" />
+            <Metric icon={<LocalShipping />} title="Reparto" value="Lineas" />
+            <Metric icon={<AccessTime />} title="Cumplimiento" value="Tiempo" />
+          </Box>
+
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              maxWidth: 620,
+              bgcolor: "rgba(255,255,255,0.11)",
+              color: "common.white",
+              border: "1px solid rgba(255,255,255,0.16)",
+              backdropFilter: "blur(10px)",
+            }}
+          >
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+              <Timeline />
+              <Box>
+                <Typography sx={{ fontWeight: 800 }}>
+                  Ruta operativa
+                </Typography>
+                <Typography sx={{ color: "rgba(255,255,255,0.78)" }}>
+                  Escaneo de equipo, llenado de carro, reparto en lineas y cierre
+                  automatico del recorrido.
+                </Typography>
+              </Box>
+            </Stack>
+          </Paper>
+        </Stack>
+      </Box>
+
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          p: { xs: 3, md: 6 },
+        }}
+      >
+        <LoginCard />
+      </Box>
+    </Box>
+  );
+}
+
+function Metric({
+  icon,
+  title,
+  value,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+}) {
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2,
+        bgcolor: "rgba(255,255,255,0.12)",
+        color: "common.white",
+        border: "1px solid rgba(255,255,255,0.14)",
+        backdropFilter: "blur(10px)",
+      }}
+    >
+      <Stack spacing={1}>
+        <Box sx={{ color: "#a7f3d0" }}>{icon}</Box>
+        <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.76)" }}>
+          {title}
+        </Typography>
+        <Typography variant="h5" sx={{ fontWeight: 900 }}>
+          {value}
+        </Typography>
+      </Stack>
+    </Paper>
+  );
+}
