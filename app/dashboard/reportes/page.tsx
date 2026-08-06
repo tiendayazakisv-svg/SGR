@@ -164,6 +164,12 @@ export default function Page() {
   const [reportNow, setReportNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    setReportNow(new Date());
+    const reportClock = window.setInterval(() => setReportNow(new Date()), 60000);
+    return () => window.clearInterval(reportClock);
+  }, []);
+
+  useEffect(() => {
     let active = true;
 
     Promise.all([
@@ -1333,8 +1339,11 @@ function getCellLabelForRun(
     .sort()
     .join(" / ");
 }
-function buildTimeChartRuns(runs: ReportRun[]): TimeChartRun[] {
-  return [...runs]
+function buildTimeChartRuns(
+  runs: ReportRun[],
+  openRuns: OpenReportRun[] = []
+): TimeChartRun[] {
+  const closedRows = [...runs]
     .sort(compareRunsByAssignedSequence)
     .map((run, index) => {
       const equipo = formatLines(run.lineas);
@@ -1351,13 +1360,43 @@ function buildTimeChartRuns(runs: ReportRun[]): TimeChartRun[] {
         almacenista: run.almacenista,
         grupoLabel: run.grupoLabel,
         recorrido,
+        recorridoLabel: `R${recorrido}`,
         tolvas: run.tolvas,
         tiempo,
         objetivo,
         variacion: round(tiempo - objetivo),
         estado: tiempo <= objetivo ? "bueno" : "malo",
-      };
+      } satisfies TimeChartRun;
     });
+
+  const overdueOpenRows = openRuns
+    .filter((run) => run.tiempoTotalMin > run.tiempoObjetivoMin)
+    .map((run, index) => {
+      const equipo = formatLines(run.lineas);
+      const tiempo = round(run.tiempoTotalMin);
+      const objetivo = round(run.tiempoObjetivoMin);
+      const recorrido = closedRows.length + index + 1;
+
+      return {
+        id: `open-${run.id}`,
+        orden: recorrido,
+        label: `Activo ${index + 1}`,
+        chartLabel: `Activo ${equipo} (${run.tolvas} tolvas)`,
+        equipo,
+        almacenista: run.almacenista,
+        grupoLabel: run.grupoLabel,
+        recorrido,
+        recorridoLabel: "En proceso",
+        tolvas: run.tolvas,
+        tiempo,
+        objetivo,
+        variacion: round(tiempo - objetivo),
+        estado: "malo",
+        enProceso: true,
+      } satisfies TimeChartRun;
+    });
+
+  return [...closedRows, ...overdueOpenRows];
 }
 
 function assignRunSequence(runs: ReportRun[]) {
@@ -1496,7 +1535,8 @@ function enrichRun(
 function enrichOpenRun(
   run: DbKioskRun,
   assignments: SupplyAssignment[],
-  people: SupplyPerson[]
+  people: SupplyPerson[],
+  now: Date | null
 ): OpenReportRun | null {
   if (run.estado === "cerrado") {
     return null;
@@ -1508,6 +1548,8 @@ function enrichOpenRun(
   const person = assignment
     ? people.find((item) => item.id === assignment.almacenistaId)
     : undefined;
+  const tiempoTotalMin = now ? diffMinutes(new Date(run.entradaAt), now) : 0;
+  const tiempoObjetivoMin = run.tiempoObjetivoMin;
 
   return {
     id: run.id,
@@ -1522,6 +1564,9 @@ function enrichOpenRun(
     grupo: person?.grupo,
     grupoLabel: person ? formatGroup(person.grupo) : "Sin asignacion",
     almacenista: person?.nombre ?? "Sin asignacion",
+    tiempoTotalMin,
+    tiempoObjetivoMin,
+    variacionMin: tiempoTotalMin - tiempoObjetivoMin,
   };
 }
 

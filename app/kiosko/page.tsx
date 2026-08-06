@@ -84,7 +84,7 @@ export default function KioskoPage() {
   const [now, setNow] = useState<Date | null>(null);
   const [message, setMessage] = useState({
     severity: "info" as "success" | "info" | "warning" | "error",
-    text: "Escanee el código de barras del equipo de líneas.",
+    text: "Escanee el cÃ³digo de barras del equipo de lÃ­neas.",
   });
   const [quickResult, setQuickResult] = useState<CompletedKioskRun | null>(null);
   const [savingRun, setSavingRun] = useState(false);
@@ -217,7 +217,7 @@ export default function KioskoPage() {
     if (!lineGroup) {
       setMessage({
         severity: "error",
-        text: "Código de equipo no encontrado. Configure el código en Líneas y equipos.",
+        text: "CÃ³digo de equipo no encontrado. Configure el cÃ³digo en LÃ­neas y equipos.",
       });
       return;
     }
@@ -361,7 +361,7 @@ export default function KioskoPage() {
         entradaAt,
       });
 
-      const nextRun = saved
+      const nextRun: ActiveKioskRun = saved
         ? {
             ...run,
             id: saved.id,
@@ -382,7 +382,7 @@ export default function KioskoPage() {
       setBarcode("");
       setMessage({
         severity: "success",
-        text: `Entrada registrada. ${nextRun.assignedPerson?.nombre ?? "Almacenista"} estÃ¡ llenando carro para equipo ${formatLines(nextRun.group.lineas)} con ${nextRun.tolvas} tolvas.`,
+        text: `Entrada registrada. ${nextRun.assignedPerson?.nombre ?? "Almacenista"} estÃƒÂ¡ llenando carro para equipo ${formatLines(nextRun.group.lineas)} con ${nextRun.tolvas} tolvas.`,
       });
     } finally {
       setSavingRun(false);
@@ -489,7 +489,7 @@ export default function KioskoPage() {
               Kiosko de abastecimiento
             </Typography>
             <Typography color="text.secondary">
-              Entrada, salida y retorno por código de equipo asociado a un almacenista.
+              Entrada, salida y retorno por cÃ³digo de equipo asociado a un almacenista.
             </Typography>
           </Box>
 
@@ -672,7 +672,7 @@ export default function KioskoPage() {
                   <QrCodeScanner color="primary" fontSize="large" />
                   <Box>
                     <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                      Escanear código de equipo
+                      Escanear cÃ³digo de equipo
                     </Typography>
                     <Typography color="text.secondary">
                       Escanee el equipo. Si no hay recorrido activo, solicita tolvas. Si ya esta activo, registra salida o retorno.
@@ -683,7 +683,7 @@ export default function KioskoPage() {
                 <TextField
                   autoFocus
                   fullWidth
-                  label="Código de barras del equipo"
+                  label="CÃ³digo de barras del equipo"
                   value={barcode}
                   onChange={(event) => setBarcode(event.target.value)}
                   onKeyDown={(event) => {
@@ -706,7 +706,7 @@ export default function KioskoPage() {
 
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    Códigos configurados desde Líneas y equipos
+                    CÃ³digos configurados desde LÃ­neas y equipos
                   </Typography>
                   <Stack direction="row" sx={{ gap: 1, flexWrap: "wrap" }}>
                     {lineGroups.map((group) => (
@@ -776,7 +776,7 @@ export default function KioskoPage() {
                       setTolvas("");
                       setMessage({
                         severity: "info",
-                        text: "Escanee el código de barras del equipo de líneas.",
+                        text: "Escanee el cÃ³digo de barras del equipo de lÃ­neas.",
                       });
                     }}
                   >
@@ -1090,7 +1090,7 @@ function RunCard({ run, now }: { run: ActiveKioskRun; now: Date }) {
           Equipo {formatLines(run.group.lineas)}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Almacenista: {run.assignedPerson?.nombre ?? "Sin asignación"}
+          Almacenista: {run.assignedPerson?.nombre ?? "Sin asignaciÃ³n"}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {run.step === "llenando_carro"
