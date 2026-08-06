@@ -465,7 +465,7 @@ export default function AssignmentManager({ initialAssignments }: Props) {
             <Typography variant="h4" sx={{ fontWeight: 900 }}>{operationalPeople.length}</Typography>
           </Box>
           <Box sx={{ p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 }}>
-            <Typography variant="body2" color="text.secondary">Asignaciones vigentes</Typography>
+            <Typography variant="body2" color="text.secondary">Asignaciónes vigentes</Typography>
             <Typography variant="h4" sx={{ fontWeight: 900 }}>{currentAssignments.length}</Typography>
           </Box>
           <Box sx={{ p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 }}>
@@ -967,7 +967,7 @@ export default function AssignmentManager({ initialAssignments }: Props) {
 
       <Paper elevation={0} sx={{ p: 2, borderRadius: 2 }}>
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-          Asignaciones vigentes
+          Asignaciónes vigentes
         </Typography>
 
         <AssignmentTable

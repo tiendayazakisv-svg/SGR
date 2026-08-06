@@ -60,7 +60,7 @@ export default function AppNavbar() {
             color: "text.primary",
           }}
         >
-          Sistema de Gestion de Recorridos
+          Sistema de Gestión de Recorridos
         </Typography>
 
         <Box

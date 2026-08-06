@@ -96,7 +96,7 @@ export default function LoginPage() {
                 maxWidth: 680,
               }}
             >
-              Sistema de Gestion de Recorridos
+              Sistema de Gestión de Recorridos
             </Typography>
             <Typography
               sx={{

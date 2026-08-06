@@ -292,7 +292,7 @@ export default function Page() {
           Reportes de abastecimiento
         </Typography>
         <Typography color="text.secondary">
-          HistÃ³rico por fecha, grupo de personal, turno, desempeno por celda y equipos de lÃ­neas.
+          Histórico por fecha, grupo de personal, turno, desempeño por celda y equipos de líneas.
         </Typography>
       </Box>
 
@@ -422,11 +422,11 @@ export default function Page() {
             <TableHead>
               <TableRow>
                 <TableCell>Fecha</TableCell>
-                <TableCell>CÃ³digo equipo</TableCell>
+                <TableCell>Código equipo</TableCell>
                 <TableCell>Grupo</TableCell>
                 <TableCell>Turno</TableCell>
                 <TableCell>Almacenista</TableCell>
-                <TableCell>LÃ­neas</TableCell>
+                <TableCell>Líneas</TableCell>
                 <TableCell>Tolvas</TableCell>
                 <TableCell>Entrada</TableCell>
                 <TableCell>Salida</TableCell>
@@ -474,7 +474,7 @@ export default function Page() {
           detail={`${report.lineaMayorVariacion?.variacionPromedioMin ?? 0} min promedio`}
         />
         <Kpi
-          title="MÃ¡s atrasada"
+          title="Más atrasada"
           value={formatLines(report.lineaMasAtrasada?.lineas)}
           detail={`${report.lineaMasAtrasada?.atrasoMaximoMin ?? 0} min sobre objetivo`}
         />
@@ -512,7 +512,7 @@ export default function Page() {
                 <TableCell>Recorridos</TableCell>
                 <TableCell>Tolvas</TableCell>
                 <TableCell>Tiempo prom.</TableCell>
-                <TableCell>RÃ¡pido</TableCell>
+                <TableCell>Rápido</TableCell>
                 <TableCell>En rango</TableCell>
                 <TableCell>Tarde</TableCell>
                 <TableCell>Cumplimiento</TableCell>
@@ -546,14 +546,14 @@ export default function Page() {
       </Paper>
 
       <PerformanceTable
-        title="DesempeÃ±o por celda"
+        title="Desempeño por celda"
         rows={report.desempenoPorCelda}
         firstHeader="Celda"
       />
       <PerformanceTable
-        title="DesempeÃ±o por equipo de lÃ­neas"
+        title="Desempeño por equipo de líneas"
         rows={report.desempenoPorLinea}
-        firstHeader="LÃ­neas"
+        firstHeader="Líneas"
       />
 
       <Paper elevation={0} sx={{ p: 2, borderRadius: 2 }}>
@@ -589,11 +589,11 @@ export default function Page() {
             <TableHead>
               <TableRow>
                 <TableCell>Fecha</TableCell>
-                <TableCell>CÃ³digo equipo</TableCell>
+                <TableCell>Código equipo</TableCell>
                 <TableCell>Grupo</TableCell>
                 <TableCell>Turno</TableCell>
                 <TableCell>Almacenista</TableCell>
-                <TableCell>LÃ­neas</TableCell>
+                <TableCell>Líneas</TableCell>
                 <TableCell>Tolvas</TableCell>
                 <TableCell>Entrada</TableCell>
                 <TableCell>Salida</TableCell>
@@ -633,7 +633,7 @@ export default function Page() {
                       <Chip
                         size="small"
                         color="warning"
-                        label="Sistema cerrÃ³ automÃ¡ticamente"
+                        label="Sistema cerró automáticamente"
                         title={run.cierreMotivo}
                       />
                     ) : (
@@ -689,10 +689,10 @@ function CompliancePieChart({
       >
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            DistribuciÃ³n de cumplimiento
+            Resumen visual de cumplimiento
           </Typography>
           <Typography color="text.secondary">
-            Recorridos dentro y fuera del tiempo segÃºn los filtros activos.
+            Recorridos dentro y fuera del tiempo según los filtros activos.
           </Typography>
         </Box>
         <Chip color="primary" label={`${total} recorridos filtrados`} />
@@ -754,7 +754,7 @@ function ComplianceBarChart({
             Recorridos por celda
           </Typography>
           <Typography color="text.secondary">
-            Cantidad de recorridos agrupados por celda segÃºn los filtros activos.
+            Cantidad de recorridos agrupados por celda según los filtros activos.
           </Typography>
         </Box>
         <Chip color="warning" label={`${total} recorridos`} />
@@ -830,7 +830,7 @@ function TimeComplianceChart({
       >
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            GrÃ¡fica de cumplimiento por recorrido
+            Gráfica de cumplimiento por recorrido
           </Typography>
           <Typography color="text.secondary">
             La linea punteada marca el tiempo ideal parametrizado por cada
@@ -1059,7 +1059,7 @@ function HopperVolumeTable({
       >
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            Tolvas por equipo de lÃ­neas
+            Tolvas por equipo de líneas
           </Typography>
           <Typography color="text.secondary">
             Ranking final de equipos por total de tolvas movidas en los filtros
@@ -1080,7 +1080,7 @@ function HopperVolumeTable({
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Equipo / lÃ­neas</TableCell>
+              <TableCell>Equipo / líneas</TableCell>
               <TableCell>Recorridos</TableCell>
               <TableCell>Total tolvas</TableCell>
               <TableCell>Prom. tolvas por recorrido</TableCell>
@@ -1186,7 +1186,7 @@ function ComparisonTable({
               <TableCell>Recorridos</TableCell>
               <TableCell>Tolvas</TableCell>
               <TableCell>Tiempo prom.</TableCell>
-              <TableCell>RÃ¡pido</TableCell>
+              <TableCell>Rápido</TableCell>
               <TableCell>En rango</TableCell>
               <TableCell>Tarde</TableCell>
               <TableCell>Cumplimiento</TableCell>
@@ -1524,8 +1524,8 @@ function enrichRun(
     estado: run.cumplimiento ?? "en_rango",
     turnoId,
     grupo: person?.grupo,
-    grupoLabel: person ? formatGroup(person.grupo) : "Sin asignaciÃ³n",
-    almacenista: person?.nombre ?? "Sin asignaciÃ³n",
+    grupoLabel: person ? formatGroup(person.grupo) : "Sin asignación",
+    almacenista: person?.nombre ?? "Sin asignación",
     supervisor: supervisor?.nombre ?? "Sin supervisor",
     cierreAutomatico: run.cierreAutomatico,
     cierreMotivo: run.cierreMotivo,
@@ -1562,8 +1562,8 @@ function enrichOpenRun(
     estado: run.estado,
     turnoId,
     grupo: person?.grupo,
-    grupoLabel: person ? formatGroup(person.grupo) : "Sin asignaciÃ³n",
-    almacenista: person?.nombre ?? "Sin asignaciÃ³n",
+    grupoLabel: person ? formatGroup(person.grupo) : "Sin asignación",
+    almacenista: person?.nombre ?? "Sin asignación",
     tiempoTotalMin,
     tiempoObjetivoMin,
     variacionMin: tiempoTotalMin - tiempoObjetivoMin,
@@ -1815,12 +1815,12 @@ function toPercent(value: number, total: number) {
 function exportBitacoraToExcel(runs: ReportRun[], desde: string, hasta: string) {
   const headers = [
     "Fecha",
-    "CÃ³digo equipo",
+    "Código equipo",
     "Grupo",
     "Turno",
     "Almacenista",
     "Supervisor",
-    "LÃ­neas",
+    "Líneas",
     "Tolvas",
     "Entrada",
     "Salida",
@@ -1853,7 +1853,7 @@ function exportBitacoraToExcel(runs: ReportRun[], desde: string, hasta: string) 
     run.tiempoObjetivoMin,
     run.tiempoTotalMin - run.tiempoObjetivoMin,
     formatRunStatus(run.estado),
-    run.cierreAutomatico ? "Sistema cerrÃ³ automÃ¡ticamente" : "Escaneo manual",
+    run.cierreAutomatico ? "Sistema cerró automáticamente" : "Escaneo manual",
     run.cierreMotivo ?? "",
   ]);
 

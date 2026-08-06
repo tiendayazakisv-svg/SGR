@@ -92,7 +92,7 @@ export default function AboutPage() {
               maxWidth: 760,
             }}
           >
-            Sistema de Gestion de Recorridos
+            Sistema de Gestión de Recorridos
           </Typography>
           <Typography
             sx={{

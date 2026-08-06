@@ -795,7 +795,7 @@ export default function KioskoPage() {
                     Recorridos cerrados
                   </Typography>
                   <Typography color="text.secondary">
-                    Ãšltimos recorridos de la sesión.
+                    Últimos recorridos de la sesión.
                   </Typography>
                 </Box>
               </Stack>
@@ -1196,7 +1196,7 @@ function buildShiftMismatchMessage(
     })
     .join(" | ");
 
-  return `Equipo ${formatLines(group.lineas)} bloqueado para ${activeShiftName}. Asignaciones vigentes: ${details}. Use Cambio de turno desde administrador si el grupo debe rotar.`;
+  return `Equipo ${formatLines(group.lineas)} bloqueado para ${activeShiftName}. Asignaciónes vigentes: ${details}. Use Cambio de turno desde administrador si el grupo debe rotar.`;
 }
 
 function getShiftLabel(turnoId?: string) {
