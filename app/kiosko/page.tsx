@@ -873,6 +873,36 @@ export default function KioskoPage() {
 
           </Stack>
         </Box>
+
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 1.75, md: 2 },
+            borderRadius: 2,
+            border: "1px solid",
+            borderColor: "divider",
+            bgcolor: "background.paper",
+          }}
+        >
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            sx={{
+              alignItems: { xs: "flex-start", sm: "center" },
+              justifyContent: "space-between",
+            }}
+          >
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                Sistema de Gesti{"\u00f3"}n de Recorridos
+              </Typography>
+              <Typography sx={{ fontWeight: 900 }}>
+                Desarrollado por Ing. Marvin Ruiz Santos
+              </Typography>
+            </Box>
+            <Chip label={"\u00c1rea de Ingenier\u00eda"} variant="outlined" sx={{ fontWeight: 800 }} />
+          </Stack>
+        </Paper>
       </Stack>
     </Box>
   );
