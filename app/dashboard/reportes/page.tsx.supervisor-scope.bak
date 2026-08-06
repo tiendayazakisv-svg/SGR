@@ -59,13 +59,8 @@ import {
   listPersonnelFromDb,
 } from "@/services/abastecimiento/abastecimiento-db.service";
 import { getCurrentUser } from "@/services/auth/auth.service";
-import {
-  findCurrentAccess,
-  getSessionGroupScope,
-  type GroupScope,
-} from "@/services/auth/current-access";
 
-type GroupFilter = GroupScope;
+type GroupFilter = "todos" | SupplyCrewGroup;
 type TeamFilter = "todos" | string;
 
 interface ReportRun {
@@ -175,7 +170,9 @@ export default function Page() {
           return;
         }
 
-        const access = findCurrentAccess(dbAccessUsers, auth);
+        const email = auth.data.user?.email?.toLowerCase();
+        const access =
+          dbAccessUsers?.find((user) => user.email.toLowerCase() === email) ?? null;
 
         setRuns(dbRuns ?? []);
         setOpenRuns(dbOpenRuns ?? []);
@@ -184,9 +181,8 @@ export default function Page() {
         setCurrentAccess(access);
         setLines(catalog?.lines ?? []);
         setCells(dbCells ?? []);
-        const scope = getSessionGroupScope(access);
-        if (scope !== "todos") {
-          setFilters((current) => ({ ...current, grupo: scope }));
+        if (access?.rol === "supervisor" && access.grupo) {
+          setFilters((current) => ({ ...current, grupo: access.grupo as GroupFilter }));
         }
       })
       .finally(() => {
@@ -239,13 +235,7 @@ export default function Page() {
       .map((run) => enrichOpenRun(run, assignments, people))
       .filter((run): run is OpenReportRun => Boolean(run))
       .filter((run) => run.fecha >= fromDate && run.fecha <= toDate)
-      .filter((run) =>
-        selectedGroup === "todos"
-          ? true
-          : selectedGroup === "sin-grupo"
-            ? false
-            : run.grupo === selectedGroup
-      );
+      .filter((run) => selectedGroup === "todos" || !selectedGroup || run.grupo === selectedGroup);
   }, [assignments, filters.desde, filters.hasta, openRuns, people, selectedGroup]);
 
   return (
@@ -291,7 +281,7 @@ export default function Page() {
             select
             label="Grupo"
             value={selectedGroup ?? "todos"}
-            disabled={Boolean(forcedGroup && forcedGroup !== "todos")}
+            disabled={Boolean(forcedGroup)}
             onChange={(event) =>
               setFilters((current) => ({
                 ...current,
@@ -300,7 +290,6 @@ export default function Page() {
             }
           >
             <MenuItem value="todos">Todos</MenuItem>
-            <MenuItem value="sin-grupo">Sin grupo asignado</MenuItem>
             <MenuItem value="grupo-1">Grupo 1</MenuItem>
             <MenuItem value="grupo-2">Grupo 2</MenuItem>
           </TextField>

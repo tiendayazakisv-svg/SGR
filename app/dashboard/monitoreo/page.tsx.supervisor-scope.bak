@@ -33,13 +33,6 @@ import {
   listPersonnelFromDb,
 } from "@/services/abastecimiento/abastecimiento-db.service";
 import { getCurrentUser } from "@/services/auth/auth.service";
-import {
-  belongsToGroupScope,
-  findCurrentAccess,
-  formatGroupScope,
-  getSessionGroupScope,
-  type GroupScope,
-} from "@/services/auth/current-access";
 
 interface MonitorRun {
   run: DbKioskRun;
@@ -52,7 +45,7 @@ export default function Page() {
   const [closedRuns, setClosedRuns] = useState<DbKioskRun[]>([]);
   const [assignments, setAssignments] = useState<SupplyAssignment[]>([]);
   const [people, setPeople] = useState<SupplyPerson[]>([]);
-  const [visibleGroup, setVisibleGroup] = useState<GroupScope>("sin-grupo");
+  const [visibleGroup, setVisibleGroup] = useState<"todos" | SupplyCrewGroup>("todos");
   const [now, setNow] = useState(new Date());
   const [loading, setLoading] = useState(true);
 
@@ -83,9 +76,17 @@ export default function Page() {
         return;
       }
 
-      const access = findCurrentAccess(dbAccessUsers, auth);
+      const email = auth.data.user?.email?.toLowerCase();
+      const access =
+        dbAccessUsers?.find((user) => user.email.toLowerCase() === email) ?? null;
 
-      setVisibleGroup(getSessionGroupScope(access));
+      setOpenRuns(dbOpen ?? []);
+      setClosedRuns(dbClosed ?? []);
+      setAssignments(dbAssignments ?? []);
+      setPeople(dbPeople ?? []);
+      setVisibleGroup(
+        access?.rol === "supervisor" && access.grupo ? access.grupo : "todos"
+      );
       setLoading(false);
     }
 
@@ -318,8 +319,11 @@ function findHistoricalAssignment(
   });
 }
 
-function belongsToVisibleGroup(item: MonitorRun, visibleGroup: GroupScope) {
-  return belongsToGroupScope(item.person?.grupo, visibleGroup);
+function belongsToVisibleGroup(
+  item: MonitorRun,
+  visibleGroup: "todos" | SupplyCrewGroup
+) {
+  return visibleGroup === "todos" || item.person?.grupo === visibleGroup;
 }
 
 function formatOpenState(state: DbKioskRun["estado"]) {

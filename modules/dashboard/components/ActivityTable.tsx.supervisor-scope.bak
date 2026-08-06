@@ -24,12 +24,6 @@ import {
   listPersonnelFromDb,
 } from "@/services/abastecimiento/abastecimiento-db.service";
 import { getCurrentUser } from "@/services/auth/auth.service";
-import {
-  belongsToGroupScope,
-  findCurrentAccess,
-  getSessionGroupScope,
-  type GroupScope,
-} from "@/services/auth/current-access";
 
 export default function ActivityTable() {
   const [runs, setRuns] = useState<DbKioskRun[]>([]);
@@ -62,8 +56,11 @@ export default function ActivityTable() {
         return;
       }
 
-      const access = findCurrentAccess(accessUsers, auth);
-      const groupFilter = getSessionGroupScope(access);
+      const email = auth.data.user?.email?.toLowerCase();
+      const access =
+        accessUsers?.find((user) => user.email.toLowerCase() === email) ?? null;
+      const groupFilter =
+        access?.rol === "supervisor" && access.grupo ? access.grupo : "todos";
       const allRuns = [...(openRuns ?? []), ...(closedRuns ?? [])];
 
       setRuns(
@@ -167,7 +164,7 @@ function filterRunsByGroup(
   runs: DbKioskRun[],
   assignments: SupplyAssignment[],
   people: SupplyPerson[],
-  groupFilter: GroupScope
+  groupFilter: "todos" | SupplyCrewGroup
 ) {
   if (groupFilter === "todos") {
     return runs;
@@ -184,7 +181,7 @@ function filterRunsByGroup(
       ? people.find((item) => item.id === assignment.almacenistaId)
       : undefined;
 
-    return belongsToGroupScope(person?.grupo, groupFilter);
+    return person?.grupo === groupFilter;
   });
 }
 

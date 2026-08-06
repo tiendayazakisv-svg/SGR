@@ -26,22 +26,14 @@ import {
   updatePersonActiveInDb,
 } from "@/services/abastecimiento/abastecimiento-db.service";
 import { getCurrentUser } from "@/services/auth/auth.service";
-import {
-  belongsToGroupScope,
-  findCurrentAccess,
-  formatGroupScope,
-  getSessionGroupScope,
-  isAdminAccess,
-  type GroupScope,
-} from "@/services/auth/current-access";
 
-type GroupFilter = GroupScope;
+type GroupFilter = "todos" | SupplyCrewGroup;
 
 export default function SupervisorPage() {
   const [people, setPeople] = useState<SupplyPerson[]>([]);
   const [accessUsers, setAccessUsers] = useState<AccessUser[]>([]);
   const [currentAccess, setCurrentAccess] = useState<AccessUser | null>(null);
-  const [groupFilter, setGroupFilter] = useState<GroupFilter>("sin-grupo");
+  const [groupFilter, setGroupFilter] = useState<GroupFilter>("todos");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
@@ -59,12 +51,16 @@ export default function SupervisorPage() {
         }
 
         const users = dbAccessUsers ?? [];
-        const access = findCurrentAccess(users, auth);
+        const email = auth.data.user?.email?.toLowerCase();
+        const access = users.find((user) => user.email.toLowerCase() === email) ?? null;
 
         setPeople(dbPeople ?? []);
         setAccessUsers(users);
         setCurrentAccess(access);
-        setGroupFilter(getSessionGroupScope(access));
+
+        if (access?.rol === "supervisor" && access.grupo) {
+          setGroupFilter(access.grupo);
+        }
       })
       .finally(() => {
         if (active) {
@@ -79,13 +75,14 @@ export default function SupervisorPage() {
 
   const supervisorGroup =
     currentAccess?.rol === "supervisor" ? currentAccess.grupo : undefined;
-  const effectiveGroup = isAdminAccess(currentAccess) ? groupFilter : getSessionGroupScope(currentAccess);
+  const effectiveGroup = supervisorGroup ?? groupFilter;
   const operationalPeople = useMemo(
     () =>
       people.filter((person) => {
         const isOperational =
           person.puesto === "almacenista" || person.puesto === "facilitador";
-        const belongsToGroup = belongsToGroupScope(person.grupo, effectiveGroup);
+        const belongsToGroup =
+          effectiveGroup === "todos" || person.grupo === effectiveGroup;
 
         return isOperational && belongsToGroup;
       }),
@@ -95,17 +92,12 @@ export default function SupervisorPage() {
   const supervisorLabel = currentAccess
     ? `${currentAccess.nombre} | ${
         currentAccess.rol === "supervisor"
-          ? formatGroupScope(getSessionGroupScope(currentAccess))
+          ? formatGroup(currentAccess.grupo ?? "grupo-1")
           : "Administrador"
       }`
     : "Sin acceso asociado";
 
   async function togglePause(person: SupplyPerson) {
-    if (!isAdminAccess(currentAccess) && !belongsToGroupScope(person.grupo, getSessionGroupScope(currentAccess))) {
-      setMessage("No puede modificar personal de otro grupo.");
-      return;
-    }
-
     const nextActive = !person.activo;
     await updatePersonActiveInDb(person.id, nextActive);
     setPeople((current) =>
@@ -150,11 +142,10 @@ export default function SupervisorPage() {
             select
             label="Grupo visible"
             value={effectiveGroup}
-            disabled={!isAdminAccess(currentAccess)}
+            disabled={Boolean(supervisorGroup)}
             onChange={(event) => setGroupFilter(event.target.value as GroupFilter)}
           >
             <MenuItem value="todos">Todos</MenuItem>
-            <MenuItem value="sin-grupo">Sin grupo asignado</MenuItem>
             <MenuItem value="grupo-1">Grupo 1</MenuItem>
             <MenuItem value="grupo-2">Grupo 2</MenuItem>
           </TextField>

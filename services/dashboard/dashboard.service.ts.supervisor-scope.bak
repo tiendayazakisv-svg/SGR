@@ -9,7 +9,7 @@ import {
   listPersonnelFromDb,
 } from "@/services/abastecimiento/abastecimiento-db.service";
 
-type GroupFilter = "todos" | "sin-grupo" | SupplyCrewGroup;
+type GroupFilter = "todos" | SupplyCrewGroup;
 
 export async function getDashboard(groupFilter: GroupFilter = "todos"): Promise<DashboardKPIs> {
   const today = getToday();
@@ -44,7 +44,7 @@ export async function getDashboard(groupFilter: GroupFilter = "todos"): Promise<
   const operationalPeople = dbPeople.filter(
     (person) =>
       (person.puesto === "almacenista" || person.puesto === "facilitador") &&
-      personBelongsToGroup(person.id, dbPeople, groupFilter)
+      (groupFilter === "todos" || person.grupo === groupFilter)
   );
 
   return {
@@ -104,10 +104,6 @@ function personBelongsToGroup(
   people: SupplyPerson[],
   groupFilter: GroupFilter
 ) {
-  if (groupFilter === "sin-grupo") {
-    return false;
-  }
-
   return groupFilter === "todos" || people.find((person) => person.id === personId)?.grupo === groupFilter;
 }
 

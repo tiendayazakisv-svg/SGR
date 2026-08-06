@@ -18,19 +18,12 @@ import {
   listPersonnelFromDb,
 } from "@/services/abastecimiento/abastecimiento-db.service";
 import { getCurrentUser } from "@/services/auth/auth.service";
-import {
-  belongsToGroupScope,
-  findCurrentAccess,
-  formatGroupScope,
-  getSessionGroupScope,
-  type GroupScope,
-} from "@/services/auth/current-access";
 
 export default function PlantStatus() {
   const [assignments, setAssignments] = useState<SupplyAssignment[]>([]);
   const [people, setPeople] = useState<SupplyPerson[]>([]);
   const [lineGroups, setLineGroups] = useState<SupplyTimeParameter[]>([]);
-  const [visibleGroup, setVisibleGroup] = useState<GroupScope>("sin-grupo");
+  const [visibleGroup, setVisibleGroup] = useState<"todos" | SupplyCrewGroup>("todos");
 
   useEffect(() => {
     let active = true;
@@ -46,9 +39,16 @@ export default function PlantStatus() {
         return;
       }
 
-      const access = findCurrentAccess(accessUsers, auth);
+      const email = auth.data.user?.email?.toLowerCase();
+      const access =
+        accessUsers?.find((user) => user.email.toLowerCase() === email) ?? null;
 
-      setVisibleGroup(getSessionGroupScope(access));
+      setAssignments((dbAssignments ?? []).filter((assignment) => !assignment.vigenteHasta));
+      setPeople(dbPeople ?? []);
+      setLineGroups(catalog?.lineGroups ?? []);
+      setVisibleGroup(
+        access?.rol === "supervisor" && access.grupo ? access.grupo : "todos"
+      );
     });
 
     return () => {
@@ -60,7 +60,7 @@ export default function PlantStatus() {
     () =>
       assignments.filter((assignment) => {
         const person = people.find((item) => item.id === assignment.almacenistaId);
-        return belongsToGroupScope(person?.grupo, visibleGroup);
+        return visibleGroup === "todos" || person?.grupo === visibleGroup;
       }),
     [assignments, people, visibleGroup]
   );
@@ -72,7 +72,7 @@ export default function PlantStatus() {
       </Typography>
 
       <Typography variant="subtitle2" sx={{ mb: 2 }} color="text.secondary">
-        Cobertura por equipo de lineas asignado y estado del almacenista. Vista: {formatGroupScope(visibleGroup)}.
+        Cobertura por equipo de lineas asignado y estado del almacenista.
       </Typography>
 
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>

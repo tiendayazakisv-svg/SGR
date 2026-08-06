@@ -41,15 +41,6 @@ import {
   updatePersonShiftInDb,
 } from "@/services/abastecimiento/abastecimiento-db.service";
 import { getCurrentUser } from "@/services/auth/auth.service";
-import {
-  belongsToGroupScope,
-  findCurrentAccess,
-  formatGroupScope,
-  getSessionGroupScope,
-  isAdminAccess,
-  isSupervisorAccess,
-  type GroupScope,
-} from "@/services/auth/current-access";
 
 interface Props {
   initialAssignments: SupplyAssignment[];
@@ -60,7 +51,6 @@ export default function AssignmentManager({ initialAssignments }: Props) {
   const [people, setPeople] = useState(supplyPersonnel);
   const [accessUsers, setAccessUsers] = useState<AccessUser[]>([]);
   const [currentAccess, setCurrentAccess] = useState<AccessUser | null>(null);
-  const [accessResolved, setAccessResolved] = useState(false);
   const [rotationMessage, setRotationMessage] = useState("");
   const [assignmentMessage, setAssignmentMessage] = useState({
     severity: "info" as "success" | "info" | "warning" | "error",
@@ -80,36 +70,27 @@ export default function AssignmentManager({ initialAssignments }: Props) {
     vigenteDesde: getTodayInSupplyTimezone(),
   });
 
-  const isAdmin = isAdminAccess(currentAccess);
-  const isSupervisor = isSupervisorAccess(currentAccess);
-  const groupScope: GroupScope = accessResolved
-    ? getSessionGroupScope(currentAccess)
-    : "sin-grupo";
-  const supervisorGroup = groupScope === "grupo-1" || groupScope === "grupo-2" ? groupScope : undefined;
+  const isSupervisor = currentAccess?.rol === "supervisor";
+  const supervisorGroup = isSupervisor ? currentAccess?.grupo : undefined;
   const visibleGroups = useMemo<SupplyCrewGroup[]>(
-    () =>
-      groupScope === "todos"
-        ? ["grupo-1", "grupo-2"]
-        : groupScope === "sin-grupo"
-          ? []
-          : [groupScope],
-    [groupScope]
+    () => (supervisorGroup ? [supervisorGroup] : ["grupo-1", "grupo-2"]),
+    [supervisorGroup]
   );
   const visiblePeople = useMemo(
     () =>
-      groupScope === "todos"
-        ? people
-        : people.filter((person) => belongsToGroupScope(person.grupo, groupScope)),
-    [groupScope, people]
+      supervisorGroup
+        ? people.filter((person) => person.grupo === supervisorGroup)
+        : people,
+    [people, supervisorGroup]
   );
   const visibleAssignments = useMemo(
     () =>
-      groupScope === "todos"
-        ? assignments
-        : assignments.filter((assignment) =>
-            assignmentBelongsToGroup(assignment, people, groupScope)
-          ),
-    [assignments, groupScope, people]
+      supervisorGroup
+        ? assignments.filter((assignment) =>
+            assignmentBelongsToGroup(assignment, people, supervisorGroup)
+          )
+        : assignments,
+    [assignments, people, supervisorGroup]
   );
   const currentAssignments = useMemo(
     () => visibleAssignments.filter((assignment) => !assignment.vigenteHasta),
@@ -123,7 +104,7 @@ export default function AssignmentManager({ initialAssignments }: Props) {
     (user) =>
       user.rol === "supervisor" &&
       user.activo &&
-      (groupScope === "todos" || user.grupo === groupScope)
+      (!supervisorGroup || user.grupo === supervisorGroup)
   );
   const selectedLines = selectedDraftLines(draft.lineas);
   const selectedLineGroup = findLineGroupForLines(lineGroups, selectedLines);
@@ -148,7 +129,7 @@ export default function AssignmentManager({ initialAssignments }: Props) {
     () => visibleGroups.map((group) => buildGroupShiftStatus(operationalPeople, group)),
     [operationalPeople, visibleGroups]
   );
-  const canRotate = isAdmin && allOperationalPeople.length > 0;
+  const canRotate = !isSupervisor && allOperationalPeople.length > 0;
   const groupOneMorning =
     buildGroupShiftStatus(allOperationalPeople, "grupo-1").turnoId === "turno-a";
 
@@ -165,7 +146,15 @@ export default function AssignmentManager({ initialAssignments }: Props) {
         return;
       }
 
-      const access = findCurrentAccess(dbAccessUsers, auth);
+      const sapId = auth.data.user?.user_metadata?.sap_id?.toUpperCase();
+      const email = auth.data.user?.email?.toLowerCase();
+      const access =
+        dbAccessUsers?.find(
+          (user) =>
+            user.id === auth.data.user?.id ||
+            user.sapId.toUpperCase() === sapId ||
+            user.email.toLowerCase() === email
+        ) ?? null;
       const accessGroup = access?.rol === "supervisor" ? access.grupo : undefined;
 
       if (dbAssignments) {
@@ -177,7 +166,6 @@ export default function AssignmentManager({ initialAssignments }: Props) {
       }
 
       setCurrentAccess(access);
-      setAccessResolved(true);
 
       if (dbPeople) {
         setPeople(dbPeople);
@@ -221,7 +209,7 @@ export default function AssignmentManager({ initialAssignments }: Props) {
       .map((line) => line.trim().toUpperCase())
       .filter(Boolean);
 
-    if (!isAdmin && groupScope === "sin-grupo") {
+    if (isSupervisor && !supervisorGroup) {
       setAssignmentMessage({
         severity: "error",
         text: "Este supervisor no tiene grupo asignado en Accesos.",
@@ -231,7 +219,7 @@ export default function AssignmentManager({ initialAssignments }: Props) {
 
     const keeper = people.find((person) => person.id === draft.almacenistaId);
 
-    if (!isAdmin && !belongsToGroupScope(keeper?.grupo, groupScope)) {
+    if (supervisorGroup && keeper?.grupo !== supervisorGroup) {
       setAssignmentMessage({
         severity: "error",
         text: "El supervisor solo puede modificar almacenistas de su grupo asignado.",
@@ -558,7 +546,7 @@ export default function AssignmentManager({ initialAssignments }: Props) {
 
         {isSupervisor && (
           <Alert severity="info" sx={{ mt: 2 }}>
-            Los cambios se guardaran solamente sobre {formatGroupScope(groupScope)}.
+            Los cambios se guardaran solamente sobre {formatGroupName(supervisorGroup ?? "grupo-1")}.
             No puede ver ni modificar asignaciones del otro grupo.
           </Alert>
         )}
@@ -1036,10 +1024,10 @@ interface GroupShiftStatus {
 function assignmentBelongsToGroup(
   assignment: SupplyAssignment,
   people: SupplyPerson[],
-  group: GroupScope
+  group: SupplyCrewGroup
 ) {
   const person = people.find((item) => item.id === assignment.almacenistaId);
-  return belongsToGroupScope(person?.grupo, group);
+  return person?.grupo === group;
 }
 function buildGroupShiftStatus(
   people: SupplyPerson[],

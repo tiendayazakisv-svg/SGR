@@ -7,10 +7,9 @@ import {
   listAccessUsersFromDb,
 } from "@/services/abastecimiento/abastecimiento-db.service";
 import { getCurrentUser } from "@/services/auth/auth.service";
-import { findCurrentAccess, getSessionGroupScope, type GroupScope } from "@/services/auth/current-access";
 import { getDashboard } from "@/services/dashboard/dashboard.service";
 
-type GroupFilter = GroupScope;
+type GroupFilter = "todos" | SupplyCrewGroup;
 
 export function useDashboard() {
   const [data, setData] = useState<DashboardKPIs | null>(null);
@@ -24,8 +23,11 @@ export function useDashboard() {
         listAccessUsersFromDb(),
         getCurrentUser(),
       ]);
-      const access = findCurrentAccess(accessUsers, auth);
-      const groupFilter: GroupFilter = getSessionGroupScope(access);
+      const email = auth.data.user?.email?.toLowerCase();
+      const access =
+        accessUsers?.find((user) => user.email.toLowerCase() === email) ?? null;
+      const groupFilter: GroupFilter =
+        access?.rol === "supervisor" && access.grupo ? access.grupo : "todos";
       const result = await getDashboard(groupFilter);
 
         if (!active) {

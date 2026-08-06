@@ -34,7 +34,6 @@ import type {
   AccessUser,
 } from "@/services/abastecimiento/abastecimiento-db.service";
 import { getCurrentUser } from "@/services/auth/auth.service";
-import { findCurrentAccess } from "@/services/auth/current-access";
 import type { SupplyCrewGroup } from "@/types/abastecimiento";
 import {
   createAccessUserInDb,
@@ -84,7 +83,9 @@ export default function Page() {
           return;
         }
 
-        const currentAccess = findCurrentAccess(result, auth);
+        const email = auth.data.user?.email?.toLowerCase();
+        const currentAccess =
+          result?.find((user) => user.email.toLowerCase() === email) ?? null;
 
         if (currentAccess?.rol !== "administrador") {
           router.replace("/dashboard");

@@ -18,7 +18,6 @@ import { MENU } from "@/config/menu";
 import type { AccessRole } from "@/services/abastecimiento/abastecimiento-db.service";
 import { listAccessUsersFromDb } from "@/services/abastecimiento/abastecimiento-db.service";
 import { getCurrentUser } from "@/services/auth/auth.service";
-import { findCurrentAccess } from "@/services/auth/current-access";
 
 const expandedWidth = 260;
 const collapsedWidth = 76;
@@ -40,7 +39,8 @@ export default function AppSidebar() {
         return;
       }
 
-      const access = findCurrentAccess(users, auth);
+      const email = auth.data.user?.email?.toLowerCase();
+      const access = users?.find((user) => user.email.toLowerCase() === email);
       setRole(access?.rol ?? null);
     });
 
