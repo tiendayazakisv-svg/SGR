@@ -242,11 +242,6 @@ export default function Page() {
         : baseReportRuns.filter((run) => getTeamKey(run) === selectedTeam),
     [baseReportRuns, selectedTeam]
   );
-  const chartRuns = useMemo(() => buildTimeChartRuns(reportRuns), [reportRuns]);
-  const compliancePieRows = useMemo(
-    () => buildCompliancePieRows(reportRuns),
-    [reportRuns]
-  );
   const complianceBarRows = useMemo(
     () => buildComplianceBarRows(reportRuns, lines, cells),
     [cells, lines, reportRuns]
