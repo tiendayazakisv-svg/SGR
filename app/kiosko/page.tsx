@@ -879,52 +879,31 @@ export default function KioskoPage() {
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 2.5, md: 3 },
+            px: { xs: 1.75, md: 2 },
+            py: 1.25,
             borderRadius: 2,
             border: "1px solid",
             borderColor: "divider",
             bgcolor: "background.paper",
           }}
         >
-          <Stack spacing={2}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-              <Box
-                sx={{
-                  width: 42,
-                  height: 42,
-                  display: "grid",
-                  placeItems: "center",
-                  borderRadius: 1.5,
-                  bgcolor: "action.hover",
-                  color: "primary.main",
-                  flex: "0 0 auto",
-                }}
-              >
-                <Engineering />
-              </Box>
-              <Box>
-                <Typography variant="h5" sx={{ fontWeight: 900 }}>
-                  Desarrollo
-                </Typography>
-                <Typography color="text.secondary">
-                  Responsable t{"\u00e9"}cnico del sistema.
-                </Typography>
-              </Box>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={0.75}
+            sx={{
+              alignItems: { xs: "flex-start", sm: "center" },
+              justifyContent: "space-between",
+            }}
+          >
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+              <Engineering color="primary" fontSize="small" />
+              <Typography variant="body2" color="text.secondary">
+                Desarrollo
+              </Typography>
             </Stack>
-
-            <Divider />
-
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-              <CheckCircle color="primary" />
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-                  Desarrollado por
-                </Typography>
-                <Typography sx={{ fontWeight: 900, fontSize: 18 }}>
-                  Ing. Marvin Ruiz Santos
-                </Typography>
-              </Box>
-            </Stack>
+            <Typography variant="body2" sx={{ fontWeight: 800 }}>
+              Ing. Marvin Ruiz Santos
+            </Typography>
           </Stack>
         </Paper>
       </Stack>
