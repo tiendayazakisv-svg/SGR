@@ -1,6 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { randomBytes, scryptSync } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  SUPPLY_TIMEZONE,
+  supplyShifts,
+} from "@/services/abastecimiento/abastecimiento.service";
 
 export async function POST(request: NextRequest) {
   const { action, payload } = await request.json();
@@ -475,6 +479,8 @@ export async function POST(request: NextRequest) {
                 tiempo_reparto_min: payload.tiempoRepartoMin,
                 tiempo_total_min: payload.tiempoTotalMin,
                 cumplimiento: payload.cumplimiento,
+                cierre_automatico: false,
+                cierre_motivo: null,
               })
               .eq("id", payload.id)
               .select("*")
@@ -483,6 +489,7 @@ export async function POST(request: NextRequest) {
         );
 
       case "list-open-kiosk-runs":
+        await autoCloseExpiredKioskRuns(supabase);
         return json(
           unwrap(
             await supabase
@@ -494,6 +501,7 @@ export async function POST(request: NextRequest) {
         );
 
       case "list-closed-kiosk-runs": {
+        await autoCloseExpiredKioskRuns(supabase);
         let query = supabase
           .from("supply_kiosk_runs")
           .select("*")
@@ -525,6 +533,127 @@ export async function POST(request: NextRequest) {
   }
 }
 
+async function autoCloseExpiredKioskRuns(
+  supabase: ReturnType<typeof createAdminClient>
+) {
+  const now = new Date();
+  const openRuns = unwrap(
+    await supabase
+      .from("supply_kiosk_runs")
+      .select("*")
+      .neq("estado", "cerrado")
+      .order("entrada_at", { ascending: true })
+  );
+
+  if (!Array.isArray(openRuns) || openRuns.length === 0) {
+    return;
+  }
+
+  await Promise.all(
+    openRuns.map(async (run) => {
+      const entradaAt = new Date(String(run.entrada_at));
+      const shift = getShiftForTimestamp(entradaAt);
+
+      if (!shift) {
+        return;
+      }
+
+      const cierreAt = getShiftEndDate(entradaAt, shift.fin);
+
+      if (now.getTime() < cierreAt.getTime()) {
+        return;
+      }
+
+      const salidaAt = run.salida_at ? new Date(String(run.salida_at)) : null;
+      const cierreIso = cierreAt.toISOString();
+      const tiempoLlenadoMin = diffMinutes(entradaAt, salidaAt ?? cierreAt);
+      const tiempoRepartoMin = salidaAt ? diffMinutes(salidaAt, cierreAt) : 0;
+      const tiempoTotalMin = diffMinutes(entradaAt, cierreAt);
+      const tiempoObjetivoMin = Number(run.tiempo_objetivo_min ?? 0);
+      const cumplimiento = getAutoCloseStatus(tiempoTotalMin, tiempoObjetivoMin);
+
+      unwrap(
+        await supabase
+          .from("supply_kiosk_runs")
+          .update({
+            salida_at: salidaAt ? salidaAt.toISOString() : cierreIso,
+            retorno_at: cierreIso,
+            estado: "cerrado",
+            tiempo_llenado_min: tiempoLlenadoMin,
+            tiempo_reparto_min: tiempoRepartoMin,
+            tiempo_total_min: tiempoTotalMin,
+            cumplimiento,
+            cierre_automatico: true,
+            cierre_motivo: `Sistema cerro automaticamente por fin de ${shift.nombre} (${shift.fin}).`,
+          })
+          .eq("id", run.id)
+          .neq("estado", "cerrado")
+      );
+    })
+  );
+}
+
+function getShiftForTimestamp(date: Date) {
+  const localMinutes = getLocalMinutes(date);
+  return supplyShifts.find((shift) => {
+    const start = timeToMinutes(shift.inicio);
+    const end = timeToMinutes(shift.fin);
+    return localMinutes >= start && localMinutes <= end;
+  });
+}
+
+function getShiftEndDate(referenceDate: Date, endTime: string) {
+  const localDate = getLocalDateParts(referenceDate);
+  return new Date(`${localDate.year}-${localDate.month}-${localDate.day}T${endTime}:00-06:00`);
+}
+
+function getLocalMinutes(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: SUPPLY_TIMEZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  const hour = Number(parts.find((part) => part.type === "hour")?.value ?? "0");
+  const minute = Number(parts.find((part) => part.type === "minute")?.value ?? "0");
+  return hour * 60 + minute;
+}
+
+function getLocalDateParts(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: SUPPLY_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  return {
+    year: parts.find((part) => part.type === "year")?.value ?? "1970",
+    month: parts.find((part) => part.type === "month")?.value ?? "01",
+    day: parts.find((part) => part.type === "day")?.value ?? "01",
+  };
+}
+
+function timeToMinutes(value: string) {
+  const [hour, minute] = value.split(":").map(Number);
+  return hour * 60 + minute;
+}
+
+function diffMinutes(start: Date, end: Date) {
+  return Math.max(0, Math.floor((end.getTime() - start.getTime()) / 60000));
+}
+
+function getAutoCloseStatus(tiempoTotalMin: number, tiempoObjetivoMin: number) {
+  if (tiempoObjetivoMin <= 0) {
+    return "en_rango";
+  }
+
+  if (tiempoTotalMin > tiempoObjetivoMin) {
+    return "tarde";
+  }
+
+  return "en_rango";
+}
 function unwrap<T>({ data, error }: { data: T; error: unknown }) {
   if (error) {
     throw error;
@@ -656,3 +785,5 @@ function getErrorMessage(error: unknown) {
 
   return String(error);
 }
+
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -18,6 +18,8 @@ import {
   Typography,
 } from "@mui/material";
 import {
+  Bar,
+  BarChart,
   CartesianGrid,
   Cell,
   LabelList,
@@ -88,6 +90,9 @@ interface ReportRun {
   grupoLabel: string;
   almacenista: string;
   supervisor: string;
+  recorridoSecuencia?: number;
+  cierreAutomatico?: boolean;
+  cierreMotivo?: string;
 }
 
 interface TimeChartRun {
@@ -110,6 +115,14 @@ interface CompliancePieRow {
   name: string;
   value: number;
   color: string;
+}
+
+interface ComplianceBarRow {
+  equipo: string;
+  recorridos: number;
+  buenos: number;
+  malos: number;
+  tolvas: number;
 }
 
 interface OpenReportRun {
@@ -207,10 +220,12 @@ export default function Page() {
     const enriched = runs
       .map((run) => enrichRun(run, assignments, people))
       .filter((run): run is ReportRun => Boolean(run));
+    const scopedRuns =
+      selectedGroup === "todos" || !selectedGroup
+        ? enriched
+        : enriched.filter((run) => run.grupo === selectedGroup);
 
-    return selectedGroup === "todos" || !selectedGroup
-      ? enriched
-      : enriched.filter((run) => run.grupo === selectedGroup);
+    return assignRunSequence(scopedRuns);
   }, [assignments, people, runs, selectedGroup]);
   const teamOptions = useMemo(() => buildTeamOptions(baseReportRuns), [baseReportRuns]);
   const selectedTeam = filters.equipo;
@@ -224,6 +239,10 @@ export default function Page() {
   const chartRuns = useMemo(() => buildTimeChartRuns(reportRuns), [reportRuns]);
   const compliancePieRows = useMemo(
     () => buildCompliancePieRows(reportRuns),
+    [reportRuns]
+  );
+  const complianceBarRows = useMemo(
+    () => buildComplianceBarRows(reportRuns),
     [reportRuns]
   );
 
@@ -361,7 +380,27 @@ export default function Page() {
         loading={loading}
       />
 
-      <CompliancePieChart rows={compliancePieRows} loading={loading} />
+            <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) minmax(0, 1fr)" },
+          gap: 2,
+          alignItems: "stretch",
+        }}
+      >
+              <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) minmax(0, 1fr)" },
+          gap: 2,
+          alignItems: "stretch",
+        }}
+      >
+        <CompliancePieChart rows={compliancePieRows} loading={loading} />
+        <ComplianceBarChart rows={complianceBarRows} loading={loading} />
+      </Box>
+        <ComplianceBarChart rows={complianceBarRows} loading={loading} />
+      </Box>
 
       <HopperVolumeTable rows={report.tolvasPorEquipo} loading={loading} />
 
@@ -385,6 +424,7 @@ export default function Page() {
                 <TableCell>Entrada</TableCell>
                 <TableCell>Salida</TableCell>
                 <TableCell>Estado</TableCell>
+                <TableCell>Cierre</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -555,6 +595,7 @@ export default function Page() {
                 <TableCell>Objetivo</TableCell>
                 <TableCell>Variacion</TableCell>
                 <TableCell>Estado</TableCell>
+                <TableCell>Cierre</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -573,12 +614,24 @@ export default function Page() {
                   <TableCell>{run.tiempoTotalMin} min</TableCell>
                   <TableCell>{run.tiempoObjetivoMin} min</TableCell>
                   <TableCell>{run.tiempoTotalMin - run.tiempoObjetivoMin} min</TableCell>
-                  <TableCell>
+                                    <TableCell>
                     <Chip
                       size="small"
                       color={getStatusColor(run.estado)}
                       label={formatRunStatus(run.estado)}
                     />
+                  </TableCell>
+                  <TableCell>
+                    {run.cierreAutomatico ? (
+                      <Chip
+                        size="small"
+                        color="warning"
+                        label="Sistema cerro automaticamente"
+                        title={run.cierreMotivo}
+                      />
+                    ) : (
+                      <Chip size="small" variant="outlined" label="Escaneo manual" />
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -663,6 +716,83 @@ function CompliancePieChart({
               />
               <Legend />
             </PieChart>
+          </ResponsiveContainer>
+        </Box>
+      )}
+    </Paper>
+  );
+}
+function ComplianceBarChart({
+  rows,
+  loading,
+}: {
+  rows: ComplianceBarRow[];
+  loading: boolean;
+}) {
+  const total = rows.reduce((sum, row) => sum + row.recorridos, 0);
+
+  return (
+    <Paper elevation={0} sx={{ p: 2, borderRadius: 2, height: "100%" }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "1fr auto" },
+          gap: 2,
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 800 }}>
+            Grafica de barras por equipo
+          </Typography>
+          <Typography color="text.secondary">
+            Total de recorridos por equipo segun los filtros activos.
+          </Typography>
+        </Box>
+        <Chip color="warning" label={`${total} recorridos`} />
+      </Box>
+
+      <DataState loading={loading} empty={!rows.length} />
+      {!!rows.length && (
+        <Box sx={{ width: "100%", height: 320 }}>
+          <ResponsiveContainer>
+            <BarChart
+              data={rows}
+              margin={{ top: 18, right: 20, left: 0, bottom: 34 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="equipo"
+                interval={0}
+                angle={-18}
+                textAnchor="end"
+                height={58}
+              />
+              <YAxis allowDecimals={false} />
+              <Tooltip
+                formatter={(value, name, props) => {
+                  const row = props.payload as ComplianceBarRow | undefined;
+                  if (name === "recorridos" && row) {
+                    return [
+                      `${value} recorridos | ${row.buenos} buenos | ${row.malos} malos | ${row.tolvas} tolvas`,
+                      "Equipo",
+                    ];
+                  }
+
+                  return [`${value}`, String(name)];
+                }}
+              />
+              <Bar
+                dataKey="recorridos"
+                name="recorridos"
+                fill="#ffb300"
+                radius={[6, 6, 0, 0]}
+                maxBarSize={72}
+              >
+                <LabelList dataKey="recorridos" position="top" />
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </Box>
       )}
@@ -1147,31 +1277,115 @@ function buildCompliancePieRows(runs: ReportRun[]): CompliancePieRow[] {
     { name: "Malos", value: bad, color: "#d32f2f" },
   ].filter((row) => row.value > 0);
 }
-function buildTimeChartRuns(runs: ReportRun[]): TimeChartRun[] {
-  return runs.map((run, index) => {
-    const equipo = formatLines(run.lineas);
-    const tiempo = round(run.tiempoTotalMin);
-    const objetivo = round(run.tiempoObjetivoMin);
-    const recorrido = index + 1;
+function buildComplianceBarRows(runs: ReportRun[]): ComplianceBarRow[] {
+  const grouped = new Map<string, ComplianceBarRow>();
 
-    return {
-      id: run.id,
-      orden: recorrido,
-      label: `R${recorrido}`,
-      chartLabel: `R${recorrido} ${equipo} (${run.tolvas} tolvas)`,
-      equipo,
-      almacenista: run.almacenista,
-      grupoLabel: run.grupoLabel,
-      recorrido,
-      tolvas: run.tolvas,
-      tiempo,
-      objetivo,
-      variacion: round(tiempo - objetivo),
-      estado: tiempo <= objetivo ? "bueno" : "malo",
-    };
+  runs.forEach((run) => {
+    const equipo = formatLines(run.lineas);
+    const current =
+      grouped.get(equipo) ?? {
+        equipo,
+        recorridos: 0,
+        buenos: 0,
+        malos: 0,
+        tolvas: 0,
+      };
+
+    current.recorridos += 1;
+    current.tolvas += run.tolvas;
+
+    if (isRunCompliant(run)) {
+      current.buenos += 1;
+    } else {
+      current.malos += 1;
+    }
+
+    grouped.set(equipo, current);
   });
+
+  return [...grouped.values()].sort((a, b) => b.recorridos - a.recorridos);
+}
+function buildTimeChartRuns(runs: ReportRun[]): TimeChartRun[] {
+  return [...runs]
+    .sort(compareRunsByAssignedSequence)
+    .map((run, index) => {
+      const equipo = formatLines(run.lineas);
+      const tiempo = round(run.tiempoTotalMin);
+      const objetivo = round(run.tiempoObjetivoMin);
+      const recorrido = run.recorridoSecuencia ?? index + 1;
+
+      return {
+        id: run.id,
+        orden: recorrido,
+        label: `R${recorrido}`,
+        chartLabel: `R${recorrido} ${equipo} (${run.tolvas} tolvas)`,
+        equipo,
+        almacenista: run.almacenista,
+        grupoLabel: run.grupoLabel,
+        recorrido,
+        tolvas: run.tolvas,
+        tiempo,
+        objetivo,
+        variacion: round(tiempo - objetivo),
+        estado: tiempo <= objetivo ? "bueno" : "malo",
+      };
+    });
 }
 
+function assignRunSequence(runs: ReportRun[]) {
+  const indexedRuns = runs.map((run, index) => ({ run, originalIndex: index }));
+  const chronologicalRuns = [...indexedRuns].sort((left, right) => {
+    const timeComparison = compareRunsByTimestamp(left.run, right.run);
+
+    if (timeComparison !== 0) {
+      return timeComparison;
+    }
+
+    // Supabase entrega cerrados de mas reciente a mas antiguo; si la fecha no
+    // desempata, invertir el indice original mantiene R1 como el recorrido mas viejo.
+    return right.originalIndex - left.originalIndex;
+  });
+  const sequenceById = new Map(
+    chronologicalRuns.map(({ run }, index) => [run.id, index + 1])
+  );
+
+  return runs.map((run) => ({
+    ...run,
+    recorridoSecuencia: sequenceById.get(run.id) ?? 1,
+  }));
+}
+
+function compareRunsByAssignedSequence(left: ReportRun, right: ReportRun) {
+  const leftSequence = left.recorridoSecuencia ?? 0;
+  const rightSequence = right.recorridoSecuencia ?? 0;
+
+  if (leftSequence !== rightSequence) {
+    return leftSequence - rightSequence;
+  }
+
+  return compareRunsByTimestamp(left, right);
+}
+
+function compareRunsByTimestamp(left: ReportRun, right: ReportRun) {
+  const leftTime = getRunSequenceTime(left);
+  const rightTime = getRunSequenceTime(right);
+  const leftValid = Number.isFinite(leftTime);
+  const rightValid = Number.isFinite(rightTime);
+
+  if (leftValid && rightValid && leftTime !== rightTime) {
+    return leftTime - rightTime;
+  }
+
+  if (leftValid !== rightValid) {
+    return leftValid ? -1 : 1;
+  }
+
+  return left.id.localeCompare(right.id);
+}
+
+function getRunSequenceTime(run: ReportRun) {
+  return Date.parse(run.retornoAt || run.salidaAt || run.entradaAt);
+}
 function getTeamKey(run: ReportRun) {
   return run.lineas.join("/");
 }
@@ -1246,6 +1460,8 @@ function enrichRun(
     grupoLabel: person ? formatGroup(person.grupo) : "Sin asignacion",
     almacenista: person?.nombre ?? "Sin asignacion",
     supervisor: supervisor?.nombre ?? "Sin supervisor",
+    cierreAutomatico: run.cierreAutomatico,
+    cierreMotivo: run.cierreMotivo,
   };
 }
 
@@ -1375,7 +1591,7 @@ function buildHopperVolumeRows(runs: ReportRun[]): HopperVolumeRow[] {
         recorridos: items.length,
         tolvasTotal,
         tolvasPromedio: round(tolvasTotal / items.length),
-        recorridoPico: peakIndex >= 0 ? peakIndex + 1 : 1,
+        recorridoPico: peakRun.recorridoSecuencia ?? (peakIndex >= 0 ? peakIndex + 1 : 1),
         tolvasPico: peakRun.tolvas,
         almacenistaPico: peakRun.almacenista,
         tiempoPicoMin: round(peakRun.tiempoTotalMin),
@@ -1538,6 +1754,8 @@ function exportBitacoraToExcel(runs: ReportRun[], desde: string, hasta: string) 
     "Objetivo min",
     "Variacion min",
     "Estado",
+    "Cierre",
+    "Motivo cierre",
   ];
 
   const rows = runs.map((run) => [
@@ -1558,6 +1776,8 @@ function exportBitacoraToExcel(runs: ReportRun[], desde: string, hasta: string) 
     run.tiempoObjetivoMin,
     run.tiempoTotalMin - run.tiempoObjetivoMin,
     formatRunStatus(run.estado),
+    run.cierreAutomatico ? "Sistema cerro automaticamente" : "Escaneo manual",
+    run.cierreMotivo ?? "",
   ]);
 
   const blob = createXlsxBlob("Bitacora", [headers, ...rows]);
@@ -1791,3 +2011,8 @@ function maxBy<T>(items: T[], key: keyof T) {
     return Number(item[key]) > Number(selected[key]) ? item : selected;
   }, undefined);
 }
+
+
+
+
+

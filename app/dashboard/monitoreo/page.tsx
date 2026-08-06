@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -265,6 +265,18 @@ export default function Page() {
                     <Chip size="small" variant="outlined" label="En proceso" />
                   )}
                 </TableCell>
+                <TableCell>
+                  {item.run.cierreAutomatico ? (
+                    <Chip
+                      size="small"
+                      color="warning"
+                      label="Sistema cerro automaticamente"
+                      title={item.run.cierreMotivo}
+                    />
+                  ) : (
+                    <Chip size="small" variant="outlined" label={item.run.estado === "cerrado" ? "Escaneo manual" : "En proceso"} />
+                  )}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -386,3 +398,4 @@ function formatTime(value: string) {
     timeZone: SUPPLY_TIMEZONE,
   });
 }
+

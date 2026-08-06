@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   SupplyAssignment,
   SupplyCell,
   SupplyCrewGroup,
@@ -26,6 +26,8 @@ export interface DbKioskRun {
   tiempoRepartoMin?: number;
   tiempoTotalMin?: number;
   cumplimiento?: "rapido" | "en_rango" | "tarde";
+  cierreAutomatico?: boolean;
+  cierreMotivo?: string;
 }
 
 export interface AccessUser {
@@ -474,6 +476,8 @@ function mapKioskRunFromDb(row: Record<string, unknown>): DbKioskRun {
     cumplimiento: row.cumplimiento
       ? (row.cumplimiento as DbKioskRun["cumplimiento"])
       : undefined,
+    cierreAutomatico: Boolean(row.cierre_automatico),
+    cierreMotivo: row.cierre_motivo ? String(row.cierre_motivo) : undefined,
   };
 }
 
@@ -488,3 +492,4 @@ function getErrorMessage(error: unknown) {
 
   return String(error);
 }
+

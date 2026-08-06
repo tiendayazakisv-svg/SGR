@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -235,7 +235,7 @@ export default function KioskoPage() {
       if (!context) {
         setMessage({
           severity: "warning",
-          text: `El equipo ${formatLines(lineGroup.lineas)} no tiene almacenista asignado para el turno actual. El sistema solo habilita el grupo correspondiente segun la hora.`,
+          text: buildShiftMismatchMessage(lineGroup, assignments, people, scanAt),
         });
         setBarcode("");
         return;
@@ -292,14 +292,20 @@ export default function KioskoPage() {
     }
 
     const activeShiftId = getActiveShiftForDate(new Date());
+    const pendingPersonStillBelongsToShift =
+      pendingRun.assignedPerson.turnoId === pendingRun.assignment.turnoId;
 
-    if (!activeShiftId || activeShiftId !== pendingRun.assignment.turnoId) {
+    if (
+      !activeShiftId ||
+      activeShiftId !== pendingRun.assignment.turnoId ||
+      !pendingPersonStillBelongsToShift
+    ) {
       setPendingRun(null);
       setTolvas("");
       setBarcode("");
       setMessage({
         severity: "warning",
-        text: "El turno actual ya no corresponde a esta entrada pendiente. Escanee nuevamente el equipo cuando el turno este habilitado.",
+        text: "El turno actual ya no corresponde a esta entrada pendiente. Escanee nuevamente el equipo cuando el grupo y turno esten habilitados.",
       });
       return;
     }
@@ -411,7 +417,8 @@ export default function KioskoPage() {
     if (
       run.assignment &&
       run.assignedPerson &&
-      activeShiftAtReturn === run.assignment.turnoId
+      activeShiftAtReturn === run.assignment.turnoId &&
+      run.assignedPerson.turnoId === run.assignment.turnoId
     ) {
       setPendingRun({
         group: run.group,
@@ -1105,47 +1112,90 @@ function formatGroup(group: SupplyPerson["grupo"]) {
   return group === "grupo-1" ? "Grupo 1" : "Grupo 2";
 }
 
+function buildShiftMismatchMessage(
+  group: SupplyTimeParameter,
+  assignments: SupplyAssignment[],
+  people: SupplyPerson[],
+  date: Date
+) {
+  const fecha = getLocalDate(date);
+  const activeShiftId = getActiveShiftForDate(date);
+  const activeShiftName = activeShiftId ? getShiftLabel(activeShiftId) : "Fuera de turno";
+  const validAssignments = assignments.filter((item) => {
+    const startsBefore = item.vigenteDesde <= fecha;
+    const endsAfter = !item.vigenteHasta || item.vigenteHasta >= fecha;
+    return startsBefore && endsAfter && sameLineSet(item.lineas, group.lineas);
+  });
+
+  if (validAssignments.length === 0) {
+    return `El equipo ${formatLines(group.lineas)} no tiene asignacion vigente. Asigne el equipo al grupo y almacenista correspondiente antes de iniciar.`;
+  }
+
+  const details = validAssignments
+    .map((assignment) => {
+      const person = people.find((item) => item.id === assignment.almacenistaId);
+      const personGroup = person ? formatGroup(person.grupo) : "Grupo no encontrado";
+      const personShift = person ? getShiftLabel(person.turnoId) : "Turno no encontrado";
+      const assignmentShift = getShiftLabel(assignment.turnoId);
+      const personName = person?.nombre ?? "Sin almacenista";
+      return `${personGroup} / ${assignmentShift}: ${personName} (${personShift})`;
+    })
+    .join(" | ");
+
+  return `Equipo ${formatLines(group.lineas)} bloqueado para ${activeShiftName}. Asignaciones vigentes: ${details}. Use Cambio de turno desde administrador si el grupo debe rotar.`;
+}
+
+function getShiftLabel(turnoId?: string) {
+  return supplyShifts.find((shift) => shift.id === turnoId)?.nombre ?? "Sin turno";
+}
+
 function resolveAssignmentForGroup(
   group: SupplyTimeParameter,
   assignments: SupplyAssignment[],
   people: SupplyPerson[],
   date: Date
 ): PendingKioskRun | null {
-  const fecha = date.toLocaleDateString("en-CA", {
-    timeZone: SUPPLY_TIMEZONE,
-  });
+  const fecha = getLocalDate(date);
   const turnoId = getActiveShiftForDate(date);
 
   if (!turnoId) {
     return null;
   }
 
-  const assignment = assignments.find((item) => {
+  const validAssignments = assignments.filter((item) => {
     const startsBefore = item.vigenteDesde <= fecha;
     const endsAfter = !item.vigenteHasta || item.vigenteHasta >= fecha;
-    return (
-      startsBefore &&
-      endsAfter &&
-      item.turnoId === turnoId &&
-      sameLineSet(item.lineas, group.lineas)
-    );
+    return startsBefore && endsAfter && sameLineSet(item.lineas, group.lineas);
   });
 
-  if (!assignment) {
-    return null;
+  for (const assignment of validAssignments) {
+    if (assignment.turnoId !== turnoId) {
+      continue;
+    }
+
+    const assignedPerson = people.find(
+      (person) => person.id === assignment.almacenistaId
+    );
+
+    if (!assignedPerson) {
+      continue;
+    }
+
+    const personBelongsToActiveShift = assignedPerson.turnoId === turnoId;
+    const personIsOperational = isOperationalPosition(assignedPerson.puesto);
+
+    if (!personBelongsToActiveShift || !personIsOperational) {
+      continue;
+    }
+
+    return {
+      group,
+      assignment,
+      assignedPerson,
+    };
   }
 
-  const assignedPerson = people.find((person) => person.id === assignment.almacenistaId);
-
-  if (!assignedPerson) {
-    return null;
-  }
-
-  return {
-    group,
-    assignment,
-    assignedPerson,
-  };
+  return null;
 }
 
 function findCurrentAssignmentForPerson(
@@ -1255,3 +1305,4 @@ function formatTime(date: Date) {
     timeZone: SUPPLY_TIMEZONE,
   }).format(date);
 }
+
