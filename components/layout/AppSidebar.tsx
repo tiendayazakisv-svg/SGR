@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -85,28 +85,65 @@ export default function AppSidebar() {
       <Toolbar
         sx={{
           px: collapsed ? 1 : 2,
-          gap: 1,
-          justifyContent: collapsed ? "center" : "space-between",
+          minHeight: 96,
+          position: "relative",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
         {!collapsed ? (
-          <Box sx={{ minWidth: 0 }}>
+          <Box
+            sx={{
+              width: "100%",
+              minWidth: 0,
+              textAlign: "center",
+              display: "grid",
+              justifyItems: "center",
+              gap: 0.25,
+              pr: 3,
+              pl: 3,
+            }}
+          >
             <Typography
               variant="h4"
               component="h1"
-              sx={{ fontWeight: 800, color: "primary.main" }}
+              sx={{
+                fontWeight: 900,
+                color: "primary.main",
+                lineHeight: 1,
+                letterSpacing: 0,
+              }}
             >
               SGR
             </Typography>
 
-            <Typography variant="caption" component="p" color="text.secondary">
+            <Typography
+              variant="caption"
+              component="p"
+              color="text.secondary"
+              sx={{
+                maxWidth: 180,
+                lineHeight: 1.35,
+                textAlign: "center",
+              }}
+            >
               Sistema de Gestion de Recorridos
             </Typography>
           </Box>
         ) : null}
 
         <Tooltip title={collapsed ? "Expandir menu" : "Contraer menu"}>
-          <IconButton onClick={toggleCollapsed} size="small" aria-label="Contraer menu">
+          <IconButton
+            onClick={toggleCollapsed}
+            size="small"
+            aria-label={collapsed ? "Expandir menu" : "Contraer menu"}
+            sx={{
+              position: collapsed ? "static" : "absolute",
+              right: collapsed ? "auto" : 8,
+              top: collapsed ? "auto" : "50%",
+              transform: collapsed ? "none" : "translateY(-50%)",
+            }}
+          >
             {collapsed ? <ChevronRight /> : <ChevronLeft />}
           </IconButton>
         </Tooltip>

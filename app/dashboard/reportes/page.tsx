@@ -118,7 +118,7 @@ interface CompliancePieRow {
 }
 
 interface ComplianceBarRow {
-  equipo: string;
+  celda: string;
   recorridos: number;
   buenos: number;
   malos: number;
@@ -242,8 +242,8 @@ export default function Page() {
     [reportRuns]
   );
   const complianceBarRows = useMemo(
-    () => buildComplianceBarRows(reportRuns),
-    [reportRuns]
+    () => buildComplianceBarRows(reportRuns, lines, cells),
+    [cells, lines, reportRuns]
   );
 
   const report = useMemo(
@@ -325,7 +325,7 @@ export default function Page() {
           </TextField>
           <TextField
             select
-            label="Equipo"
+            label="Celda"
             value={selectedTeam}
             onChange={(event) =>
               setFilters((current) => ({
@@ -379,16 +379,7 @@ export default function Page() {
         rows={chartRuns}
         loading={loading}
       />
-
-            <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) minmax(0, 1fr)" },
-          gap: 2,
-          alignItems: "stretch",
-        }}
-      >
-              <Box
+      <Box
         sx={{
           display: "grid",
           gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) minmax(0, 1fr)" },
@@ -397,8 +388,6 @@ export default function Page() {
         }}
       >
         <CompliancePieChart rows={compliancePieRows} loading={loading} />
-        <ComplianceBarChart rows={complianceBarRows} loading={loading} />
-      </Box>
         <ComplianceBarChart rows={complianceBarRows} loading={loading} />
       </Box>
 
@@ -486,7 +475,7 @@ export default function Page() {
 
       <ComparisonTable
         title="Comparativo por equipos"
-        firstHeader="Equipo"
+        firstHeader="Celda"
         rows={report.comparativoPorEquipo}
       />
 
@@ -744,10 +733,10 @@ function ComplianceBarChart({
       >
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            Grafica de barras por equipo
+            Grafica de barras por celda
           </Typography>
           <Typography color="text.secondary">
-            Total de recorridos por equipo segun los filtros activos.
+            Total de recorridos por celda segun los filtros activos.
           </Typography>
         </Box>
         <Chip color="warning" label={`${total} recorridos`} />
@@ -763,7 +752,7 @@ function ComplianceBarChart({
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis
-                dataKey="equipo"
+                dataKey="celda"
                 interval={0}
                 angle={-18}
                 textAnchor="end"
@@ -776,7 +765,7 @@ function ComplianceBarChart({
                   if (name === "recorridos" && row) {
                     return [
                       `${value} recorridos | ${row.buenos} buenos | ${row.malos} malos | ${row.tolvas} tolvas`,
-                      "Equipo",
+                      "Celda",
                     ];
                   }
 
@@ -1277,14 +1266,18 @@ function buildCompliancePieRows(runs: ReportRun[]): CompliancePieRow[] {
     { name: "Malos", value: bad, color: "#d32f2f" },
   ].filter((row) => row.value > 0);
 }
-function buildComplianceBarRows(runs: ReportRun[]): ComplianceBarRow[] {
+function buildComplianceBarRows(
+  runs: ReportRun[],
+  lines: SupplyLine[],
+  cells: SupplyCell[]
+): ComplianceBarRow[] {
   const grouped = new Map<string, ComplianceBarRow>();
 
   runs.forEach((run) => {
-    const equipo = formatLines(run.lineas);
+    const celda = getCellLabelForRun(run, lines, cells);
     const current =
-      grouped.get(equipo) ?? {
-        equipo,
+      grouped.get(celda) ?? {
+        celda,
         recorridos: 0,
         buenos: 0,
         malos: 0,
@@ -1300,10 +1293,33 @@ function buildComplianceBarRows(runs: ReportRun[]): ComplianceBarRow[] {
       current.malos += 1;
     }
 
-    grouped.set(equipo, current);
+    grouped.set(celda, current);
   });
 
   return [...grouped.values()].sort((a, b) => b.recorridos - a.recorridos);
+}
+
+function getCellLabelForRun(
+  run: ReportRun,
+  lines: SupplyLine[],
+  cells: SupplyCell[]
+) {
+  const cellIds = [
+    ...new Set(
+      run.lineas
+        .map((codigo) => lines.find((line) => line.codigo === codigo)?.celdaId)
+        .filter((cellId): cellId is string => Boolean(cellId))
+    ),
+  ];
+
+  if (!cellIds.length) {
+    return "Sin celda";
+  }
+
+  return cellIds
+    .map((cellId) => cells.find((cell) => cell.id === cellId)?.nombre ?? "Sin celda")
+    .sort()
+    .join(" / ");
 }
 function buildTimeChartRuns(runs: ReportRun[]): TimeChartRun[] {
   return [...runs]
@@ -2011,6 +2027,7 @@ function maxBy<T>(items: T[], key: keyof T) {
     return Number(item[key]) > Number(selected[key]) ? item : selected;
   }, undefined);
 }
+
 
 
 
