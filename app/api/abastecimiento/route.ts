@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { randomBytes, scryptSync } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
@@ -441,6 +441,21 @@ export async function POST(request: NextRequest) {
           ...(payload.entradaAt ? { entrada_at: payload.entradaAt } : {}),
         };
 
+        const existingOpenRun = unwrap(
+          await supabase
+            .from("supply_kiosk_runs")
+            .select("*")
+            .eq("codigo_barras", payload.group.codigoBarras)
+            .neq("estado", "cerrado")
+            .order("entrada_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        );
+
+        if (existingOpenRun) {
+          return json(existingOpenRun);
+        }
+
         return json(
           unwrap(
             await supabase
@@ -488,17 +503,18 @@ export async function POST(request: NextRequest) {
           )
         );
 
-      case "list-open-kiosk-runs":
+      case "list-open-kiosk-runs": {
         await autoCloseExpiredKioskRuns(supabase);
-        return json(
-          unwrap(
-            await supabase
-              .from("supply_kiosk_runs")
-              .select("*")
-              .neq("estado", "cerrado")
-              .order("entrada_at", { ascending: false })
-          )
+        const openRuns = unwrap(
+          await supabase
+            .from("supply_kiosk_runs")
+            .select("*")
+            .neq("estado", "cerrado")
+            .order("entrada_at", { ascending: false })
         );
+
+        return json(dedupeOpenRunsByBarcode(openRuns));
+      }
 
       case "list-closed-kiosk-runs": {
         await autoCloseExpiredKioskRuns(supabase);
@@ -533,6 +549,25 @@ export async function POST(request: NextRequest) {
   }
 }
 
+function dedupeOpenRunsByBarcode(rows: unknown) {
+  if (!Array.isArray(rows)) {
+    return rows;
+  }
+
+  const seen = new Set<string>();
+
+  return rows.filter((row) => {
+    const item = row as Record<string, unknown>;
+    const key = String(item.codigo_barras ?? item.line_group_id ?? item.id);
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+}
 async function autoCloseExpiredKioskRuns(
   supabase: ReturnType<typeof createAdminClient>
 ) {

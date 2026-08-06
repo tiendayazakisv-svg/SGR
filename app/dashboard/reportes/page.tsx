@@ -109,6 +109,8 @@ interface TimeChartRun {
   objetivo: number;
   variacion: number;
   estado: "bueno" | "malo";
+  recorridoLabel: string;
+  enProceso?: boolean;
 }
 
 interface CompliancePieRow {
@@ -138,6 +140,9 @@ interface OpenReportRun {
   grupo?: SupplyCrewGroup;
   grupoLabel: string;
   almacenista: string;
+  tiempoTotalMin: number;
+  tiempoObjetivoMin: number;
+  variacionMin: number;
 }
 
 export default function Page() {
@@ -156,6 +161,7 @@ export default function Page() {
   const [lines, setLines] = useState<SupplyLine[]>([]);
   const [cells, setCells] = useState<SupplyCell[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reportNow, setReportNow] = useState<Date | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -255,7 +261,7 @@ export default function Page() {
     const toDate = filters.hasta;
 
     return openRuns
-      .map((run) => enrichOpenRun(run, assignments, people))
+      .map((run) => enrichOpenRun(run, assignments, people, reportNow))
       .filter((run): run is OpenReportRun => Boolean(run))
       .filter((run) => run.fecha >= fromDate && run.fecha <= toDate)
       .filter((run) =>
@@ -264,8 +270,19 @@ export default function Page() {
           : selectedGroup === "sin-grupo"
             ? false
             : run.grupo === selectedGroup
+      )
+      .filter((run) =>
+        selectedTeam === "todos" ? true : run.lineas.join("/") === selectedTeam
       );
-  }, [assignments, filters.desde, filters.hasta, openRuns, people, selectedGroup]);
+  }, [assignments, filters.desde, filters.hasta, openRuns, people, reportNow, selectedGroup, selectedTeam]);
+  const chartRuns = useMemo(
+    () => buildTimeChartRuns(reportRuns, visibleOpenRuns),
+    [reportRuns, visibleOpenRuns]
+  );
+  const compliancePieRows = useMemo(
+    () => buildCompliancePieRows(chartRuns),
+    [chartRuns]
+  );
 
   return (
     <Stack spacing={3}>
@@ -1257,9 +1274,9 @@ function buildTeamOptions(runs: ReportRun[]) {
 }
 
 
-function buildCompliancePieRows(runs: ReportRun[]): CompliancePieRow[] {
-  const good = runs.filter(isRunCompliant).length;
-  const bad = runs.length - good;
+function buildCompliancePieRows(rows: TimeChartRun[]): CompliancePieRow[] {
+  const good = rows.filter((row) => row.estado === "bueno").length;
+  const bad = rows.filter((row) => row.estado === "malo").length;
 
   return [
     { name: "Buenos", value: good, color: "#2e7d32" },
@@ -1736,6 +1753,10 @@ function formatLines(lineas?: string[]) {
 
 function formatGroup(group: SupplyCrewGroup) {
   return group === "grupo-1" ? "Grupo 1" : "Grupo 2";
+}
+
+function diffMinutes(start: Date, end: Date) {
+  return Math.max(0, Math.floor((end.getTime() - start.getTime()) / 60000));
 }
 
 function round(value: number) {

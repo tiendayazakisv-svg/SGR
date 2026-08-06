@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -87,6 +87,7 @@ export default function KioskoPage() {
     text: "Escanee el código de barras del equipo de líneas.",
   });
   const [quickResult, setQuickResult] = useState<CompletedKioskRun | null>(null);
+  const [savingRun, setSavingRun] = useState(false);
 
   useEffect(() => {
     setNow(new Date());
@@ -156,13 +157,19 @@ export default function KioskoPage() {
     };
   }, [lineGroups]);
 
+  const visibleActiveRuns = useMemo(
+    () => dedupeActiveRunsByGroup(activeRuns),
+    [activeRuns]
+  );
   const activeRunByCode = useMemo(
     () =>
-      activeRuns.reduce<Record<string, ActiveKioskRun>>((acc, run) => {
-        acc[run.group.codigoBarras] = run;
+      visibleActiveRuns.reduce<Record<string, ActiveKioskRun>>((acc, run) => {
+        if (!acc[run.group.codigoBarras]) {
+          acc[run.group.codigoBarras] = run;
+        }
         return acc;
       }, {}),
-    [activeRuns]
+    [visibleActiveRuns]
   );
   const pausedPeople = useMemo(
     () =>
@@ -287,7 +294,19 @@ export default function KioskoPage() {
   }
 
   async function handleStartRun() {
-    if (!pendingRun) {
+    if (!pendingRun || savingRun) {
+      return;
+    }
+
+    const duplicateRun = activeRunByCode[pendingRun.group.codigoBarras];
+    if (duplicateRun) {
+      setPendingRun(null);
+      setTolvas("");
+      setBarcode("");
+      setMessage({
+        severity: "warning",
+        text: `Ya existe un recorrido activo para el equipo ${formatLines(pendingRun.group.lineas)}. Cierre la salida o retorno pendiente antes de iniciar otro.`,
+      });
       return;
     }
 
@@ -320,41 +339,54 @@ export default function KioskoPage() {
       return;
     }
 
-    const { group, assignment, assignedPerson } = pendingRun;
-    const activeAssignedPerson =
-      (await reactivatePersonIfPaused(assignedPerson)) ?? assignedPerson;
-    const entradaAt = pendingRun.entradaAt ?? new Date();
-    const run: ActiveKioskRun = {
-      id: `${group.id}-${Date.now()}`,
-      group,
-      assignment,
-      assignedPerson: activeAssignedPerson,
-      tolvas: parsedTolvas,
-      entradaAt,
-      step: "llenando_carro",
-    };
-    const saved = await createKioskRunInDb({
-      group,
-      tolvas: parsedTolvas,
-      entradaAt,
-    });
+    setSavingRun(true);
 
-    const nextRun = saved
-      ? {
-          ...run,
-          id: saved.id,
-          entradaAt: new Date(saved.entradaAt),
-        }
-      : run;
+    try {
+      const { group, assignment, assignedPerson } = pendingRun;
+      const activeAssignedPerson =
+        (await reactivatePersonIfPaused(assignedPerson)) ?? assignedPerson;
+      const entradaAt = pendingRun.entradaAt ?? new Date();
+      const run: ActiveKioskRun = {
+        id: `${group.id}-${Date.now()}`,
+        group,
+        assignment,
+        assignedPerson: activeAssignedPerson,
+        tolvas: parsedTolvas,
+        entradaAt,
+        step: "llenando_carro",
+      };
+      const saved = await createKioskRunInDb({
+        group,
+        tolvas: parsedTolvas,
+        entradaAt,
+      });
 
-    setActiveRuns((current) => [nextRun, ...current]);
-    setPendingRun(null);
-    setTolvas("");
-    setBarcode("");
-    setMessage({
-      severity: "success",
-      text: `Entrada registrada. ${nextRun.assignedPerson?.nombre ?? "Almacenista"} está llenando carro para equipo ${formatLines(nextRun.group.lineas)} con ${nextRun.tolvas} tolvas.`,
-    });
+      const nextRun = saved
+        ? {
+            ...run,
+            id: saved.id,
+            entradaAt: new Date(saved.entradaAt),
+            salidaAt: saved.salidaAt ? new Date(saved.salidaAt) : undefined,
+            step:
+              saved.estado === "repartiendo_tolvas"
+                ? "repartiendo_tolvas"
+                : "llenando_carro",
+          }
+        : run;
+
+      setActiveRuns((current) =>
+        dedupeActiveRunsByGroup([nextRun, ...current])
+      );
+      setPendingRun(null);
+      setTolvas("");
+      setBarcode("");
+      setMessage({
+        severity: "success",
+        text: `Entrada registrada. ${nextRun.assignedPerson?.nombre ?? "Almacenista"} estÃ¡ llenando carro para equipo ${formatLines(nextRun.group.lineas)} con ${nextRun.tolvas} tolvas.`,
+      });
+    } finally {
+      setSavingRun(false);
+    }
   }
 
   async function registerExit(run: ActiveKioskRun) {
@@ -604,7 +636,7 @@ export default function KioskoPage() {
           <KioskSummaryCard
             icon={<LocalShipping />}
             label="Recorridos activos"
-            value={String(activeRuns.length)}
+            value={String(visibleActiveRuns.length)}
             detail="En tienda o reparto"
             color="success.main"
           />
@@ -632,8 +664,9 @@ export default function KioskoPage() {
             alignItems: "start",
           }}
         >
-          <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
-            {!pendingRun ? (
+          <Stack spacing={3}>
+            <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
+              {!pendingRun ? (
               <Stack spacing={3}>
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                   <QrCodeScanner color="primary" fontSize="large" />
@@ -730,6 +763,7 @@ export default function KioskoPage() {
                     variant="contained"
                     startIcon={<CheckCircle />}
                     onClick={handleStartRun}
+                    disabled={savingRun}
                     sx={{ py: 1.5, flex: 1 }}
                   >
                     Iniciar recorrido
@@ -751,37 +785,6 @@ export default function KioskoPage() {
                 </Box>
               </Stack>
             )}
-          </Paper>
-
-          <Stack spacing={3}>
-            <PausedPersonnelPanel
-              people={pausedPeople}
-              assignments={assignments}
-              now={now}
-            />
-
-            <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
-              <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 2 }}>
-                <AccessTime color="primary" fontSize="large" />
-                <Box>
-                  <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                    Recorridos activos
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Hora actual: {now ? formatTime(now) : "--:--:--"}
-                  </Typography>
-                </Box>
-              </Stack>
-
-              {activeRuns.length === 0 ? (
-                <Typography color="text.secondary">Sin recorridos activos.</Typography>
-              ) : (
-                <Stack spacing={1.25}>
-                  {activeRuns.map((run) => (
-                    <RunCard key={run.id} run={run} now={now ?? run.entradaAt} />
-                  ))}
-                </Stack>
-              )}
             </Paper>
 
             <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
@@ -836,6 +839,39 @@ export default function KioskoPage() {
               )}
             </Paper>
           </Stack>
+
+          <Stack spacing={3}>
+            <PausedPersonnelPanel
+              people={pausedPeople}
+              assignments={assignments}
+              now={now}
+            />
+
+            <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 2 }}>
+                <AccessTime color="primary" fontSize="large" />
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                    Recorridos activos
+                  </Typography>
+                  <Typography color="text.secondary">
+                    Hora actual: {now ? formatTime(now) : "--:--:--"}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              {visibleActiveRuns.length === 0 ? (
+                <Typography color="text.secondary">Sin recorridos activos.</Typography>
+              ) : (
+                <Stack spacing={1.25}>
+                  {visibleActiveRuns.map((run) => (
+                    <RunCard key={run.id} run={run} now={now ?? run.entradaAt} />
+                  ))}
+                </Stack>
+              )}
+            </Paper>
+
+          </Stack>
         </Box>
       </Stack>
     </Box>
@@ -845,6 +881,24 @@ export default function KioskoPage() {
 
 
 
+
+function dedupeActiveRunsByGroup(runs: ActiveKioskRun[]) {
+  const sortedRuns = [...runs].sort(
+    (left, right) => right.entradaAt.getTime() - left.entradaAt.getTime()
+  );
+  const seen = new Set<string>();
+
+  return sortedRuns.filter((run) => {
+    const key = run.group.codigoBarras;
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+}
 function ResultMetric({ label, value }: { label: string; value: string }) {
   return (
     <Box
