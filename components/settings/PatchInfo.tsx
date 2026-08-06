@@ -27,7 +27,7 @@ export default function PatchInfo() {
 
         <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
           <Chip color="primary" label={patchInfo.label} />
-          <Chip variant="outlined" label={`Version ${patchInfo.version}`} />
+          <Chip variant="outlined" label={`Versión ${patchInfo.version}`} />
           <Chip variant="outlined" label={`Actualizado ${patchInfo.updatedAt}`} />
         </Stack>
       </Box>

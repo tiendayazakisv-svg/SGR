@@ -80,7 +80,7 @@ export default function CellsCrud() {
           }}
         >
           <TextField
-            label="Codigo"
+            label="Código"
             value={draft.codigo}
             onChange={(event) =>
               setDraft((current) => ({ ...current, codigo: event.target.value }))
@@ -107,7 +107,7 @@ export default function CellsCrud() {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Codigo</TableCell>
+              <TableCell>Código</TableCell>
               <TableCell>Nombre</TableCell>
               <TableCell>Estado</TableCell>
               <TableCell />

@@ -118,7 +118,7 @@ export default function LoginPage() {
             }}
           >
             <Metric icon={<Inventory2 />} title="Entrada" value="Tolvas" />
-            <Metric icon={<LocalShipping />} title="Reparto" value="Lineas" />
+            <Metric icon={<LocalShipping />} title="Reparto" value="Líneas" />
             <Metric icon={<AccessTime />} title="Cumplimiento" value="Tiempo" />
           </Box>
 
@@ -140,7 +140,7 @@ export default function LoginPage() {
                   Ruta operativa
                 </Typography>
                 <Typography sx={{ color: "rgba(255,255,255,0.78)" }}>
-                  Escaneo de equipo, llenado de carro, reparto en lineas y cierre
+                  Escaneo de equipo, llenado de carro, reparto en líneas y cierre
                   automatico del recorrido.
                 </Typography>
               </Box>

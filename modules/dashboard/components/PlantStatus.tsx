@@ -72,7 +72,7 @@ export default function PlantStatus() {
       </Typography>
 
       <Typography variant="subtitle2" sx={{ mb: 2 }} color="text.secondary">
-        Cobertura por equipo de lineas asignado y estado del almacenista. Vista: {formatGroupScope(visibleGroup)}.
+        Cobertura por equipo de líneas asignado y estado del almacenista. Vista: {formatGroupScope(visibleGroup)}.
       </Typography>
 
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
@@ -93,7 +93,7 @@ export default function PlantStatus() {
             />
           );
         })}
-        {!visibleAssignments.length && <Chip label="Sin asignaciones vigentes" />}
+        {!visibleAssignments.length && <Chip label="Sin asignaciónes vigentes" />}
       </Box>
     </Paper>
   );

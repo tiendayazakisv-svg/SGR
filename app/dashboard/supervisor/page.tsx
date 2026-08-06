@@ -116,7 +116,7 @@ export default function SupervisorPage() {
     setMessage(
       nextActive
         ? `${person.nombre} fue reactivado para iniciar recorridos.`
-        : `${person.nombre} quedo en pausa por comida. Puede reactivarse aqui o automaticamente al iniciar recorrido en kiosko.`
+        : `${person.nombre} quedó en pausa por comida. Puede reactivarse aqui o automáticamente al iniciar recorrido en kiosko.`
     );
   }
 
@@ -166,7 +166,7 @@ export default function SupervisorPage() {
         ) : null}
         {!currentAccess && accessUsers.length ? (
           <Alert severity="warning" sx={{ mt: 2 }}>
-            El correo de la sesion no coincide con un usuario de Accesos.
+            El correo de la sesión no coincide con un usuario de Accesos.
           </Alert>
         ) : null}
       </Paper>

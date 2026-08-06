@@ -103,7 +103,7 @@ export default function AboutPage() {
             }}
           >
             Plataforma para control de abastecimiento de componentes, recorridos,
-            tolvas, turnos, equipos de lineas y cumplimiento operativo.
+            tolvas, turnos, equipos de líneas y cumplimiento operativo.
           </Typography>
         </Box>
       </Paper>
@@ -144,7 +144,7 @@ export default function AboutPage() {
                 label="Desarrollado por"
                 value="Ing. Marvin Ruiz Santos"
               />
-              <DetailCard icon={<Groups />} label="Area" value="Ingenieria" />
+              <DetailCard icon={<Groups />} label="Área" value="Ingeniería" />
             </Box>
           </Stack>
         </Paper>
@@ -155,7 +155,7 @@ export default function AboutPage() {
               <IconFrame icon={<SystemUpdateAlt />} />
               <Box>
                 <Typography variant="h5" sx={{ fontWeight: 900 }}>
-                  Version del sistema
+                  Versión del sistema
                 </Typography>
                 <Typography color="text.secondary">
                   Ultimo parche aplicado y version vigente.
@@ -173,7 +173,7 @@ export default function AboutPage() {
               }}
             >
               <PatchMetric label="Parche" value={patchInfo.label} strong />
-              <PatchMetric label="Version" value={patchInfo.version} />
+              <PatchMetric label="Versión" value={patchInfo.version} />
               <PatchMetric label="Fecha" value={patchInfo.updatedAt} />
             </Box>
 
@@ -246,7 +246,7 @@ export default function AboutPage() {
             }}
           >
             <ScopeItem icon={<QrCodeScanner />} title="Kiosko" />
-            <ScopeItem icon={<AccountTree />} title="Lineas y equipos" />
+            <ScopeItem icon={<AccountTree />} title="Líneas y equipos" />
             <ScopeItem icon={<Groups />} title="Grupos y supervisores" />
             <ScopeItem icon={<Timeline />} title="Reportes y cumplimiento" />
           </Box>
@@ -280,13 +280,13 @@ function PatchHeader() {
         Parche
       </Typography>
       <Typography variant="caption" sx={{ fontWeight: 900 }}>
-        Version
+        Versión
       </Typography>
       <Typography variant="caption" sx={{ fontWeight: 900 }}>
         Fecha
       </Typography>
       <Typography variant="caption" sx={{ fontWeight: 900 }}>
-        Descripcion
+        Descripción
       </Typography>
     </Box>
   );

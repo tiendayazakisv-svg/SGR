@@ -3,13 +3,13 @@
     "patch":  1,
     "label":  "P-0001",
     "updatedAt":  "2026-07-16",
-    "description":  "Version inicial de control de parches SGR",
+    "description":  "Versión inicial de control de parches SGR",
     "history":  [
                     {
                         "label":  "P-0001",
                         "version":  "0.1.0",
                         "updatedAt":  "2026-07-16",
-                        "description":  "Version inicial de control de parches SGR"
+                        "description":  "Versión inicial de control de parches SGR"
                     }
                 ]
 }

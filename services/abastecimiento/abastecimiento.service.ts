@@ -203,7 +203,7 @@ export function getShiftName(id: string) {
 
 export function formatRunStatus(status: SupplyRunStatus) {
   const labels: Record<SupplyRunStatus, string> = {
-    rapido: "Mas rapido",
+    rapido: "Más rápido",
     en_rango: "En rango",
     tarde: "Fuera de tiempo",
   };

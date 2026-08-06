@@ -356,7 +356,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (!user.activo) {
-          throw new Error("El usuario no esta activo.");
+          throw new Error("El usuario no está activo.");
         }
 
         return json({ email: user.email });
@@ -619,7 +619,7 @@ async function autoCloseExpiredKioskRuns(
             tiempo_total_min: tiempoTotalMin,
             cumplimiento,
             cierre_automatico: true,
-            cierre_motivo: `Sistema cerro automaticamente por fin de ${shift.nombre} (${shift.fin}).`,
+            cierre_motivo: `Sistema cerró automáticamente por fin de ${shift.nombre} (${shift.fin}).`,
           })
           .eq("id", run.id)
           .neq("estado", "cerrado")

@@ -42,7 +42,7 @@ export async function loginWithSapId(
         message:
           typeof result.error === "string"
             ? result.error
-            : "No se pudo iniciar sesion.",
+            : "No se pudo iniciar sesión.",
       },
     };
   }
@@ -68,7 +68,7 @@ export async function getCurrentUser(): Promise<AuthResponse> {
     return {
       data: { user: null },
       error: {
-        message: "No se pudo leer la sesion actual.",
+        message: "No se pudo leer la sesión actual.",
       },
     };
   }

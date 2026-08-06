@@ -270,7 +270,7 @@ export default function Page() {
                     <Chip
                       size="small"
                       color="warning"
-                      label="Sistema cerro automaticamente"
+                      label="Sistema cerró automáticamente"
                       title={item.run.cierreMotivo}
                     />
                   ) : (

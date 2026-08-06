@@ -292,7 +292,7 @@ export default function Page() {
           Reportes de abastecimiento
         </Typography>
         <Typography color="text.secondary">
-          Historico por fecha, grupo de personal, turno, desempeno por celda y equipos de lineas.
+          Histórico por fecha, grupo de personal, turno, desempeno por celda y equipos de líneas.
         </Typography>
       </Box>
 
@@ -422,11 +422,11 @@ export default function Page() {
             <TableHead>
               <TableRow>
                 <TableCell>Fecha</TableCell>
-                <TableCell>Codigo equipo</TableCell>
+                <TableCell>Código equipo</TableCell>
                 <TableCell>Grupo</TableCell>
                 <TableCell>Turno</TableCell>
                 <TableCell>Almacenista</TableCell>
-                <TableCell>Lineas</TableCell>
+                <TableCell>Líneas</TableCell>
                 <TableCell>Tolvas</TableCell>
                 <TableCell>Entrada</TableCell>
                 <TableCell>Salida</TableCell>
@@ -474,7 +474,7 @@ export default function Page() {
           detail={`${report.lineaMayorVariacion?.variacionPromedioMin ?? 0} min promedio`}
         />
         <Kpi
-          title="Mas atrasada"
+          title="Más atrasada"
           value={formatLines(report.lineaMasAtrasada?.lineas)}
           detail={`${report.lineaMasAtrasada?.atrasoMaximoMin ?? 0} min sobre objetivo`}
         />
@@ -512,7 +512,7 @@ export default function Page() {
                 <TableCell>Recorridos</TableCell>
                 <TableCell>Tolvas</TableCell>
                 <TableCell>Tiempo prom.</TableCell>
-                <TableCell>Rapido</TableCell>
+                <TableCell>Rápido</TableCell>
                 <TableCell>En rango</TableCell>
                 <TableCell>Tarde</TableCell>
                 <TableCell>Cumplimiento</TableCell>
@@ -546,14 +546,14 @@ export default function Page() {
       </Paper>
 
       <PerformanceTable
-        title="Desempeno por celda"
+        title="Desempeño por celda"
         rows={report.desempenoPorCelda}
         firstHeader="Celda"
       />
       <PerformanceTable
-        title="Desempeno por equipo de lineas"
+        title="Desempeño por equipo de líneas"
         rows={report.desempenoPorLinea}
-        firstHeader="Lineas"
+        firstHeader="Líneas"
       />
 
       <Paper elevation={0} sx={{ p: 2, borderRadius: 2 }}>
@@ -589,11 +589,11 @@ export default function Page() {
             <TableHead>
               <TableRow>
                 <TableCell>Fecha</TableCell>
-                <TableCell>Codigo equipo</TableCell>
+                <TableCell>Código equipo</TableCell>
                 <TableCell>Grupo</TableCell>
                 <TableCell>Turno</TableCell>
                 <TableCell>Almacenista</TableCell>
-                <TableCell>Lineas</TableCell>
+                <TableCell>Líneas</TableCell>
                 <TableCell>Tolvas</TableCell>
                 <TableCell>Entrada</TableCell>
                 <TableCell>Salida</TableCell>
@@ -633,7 +633,7 @@ export default function Page() {
                       <Chip
                         size="small"
                         color="warning"
-                        label="Sistema cerro automaticamente"
+                        label="Sistema cerró automáticamente"
                         title={run.cierreMotivo}
                       />
                     ) : (
@@ -751,7 +751,7 @@ function ComplianceBarChart({
       >
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            Grafica de barras por celda
+            Gráfica de barras por celda
           </Typography>
           <Typography color="text.secondary">
             Total de recorridos por celda segun los filtros activos.
@@ -830,7 +830,7 @@ function TimeComplianceChart({
       >
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            Grafica de cumplimiento por recorrido
+            Gráfica de cumplimiento por recorrido
           </Typography>
           <Typography color="text.secondary">
             La linea punteada marca el tiempo ideal parametrizado por cada
@@ -1059,7 +1059,7 @@ function HopperVolumeTable({
       >
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            Tolvas por equipo de lineas
+            Tolvas por equipo de líneas
           </Typography>
           <Typography color="text.secondary">
             Ranking final de equipos por total de tolvas movidas en los filtros
@@ -1080,7 +1080,7 @@ function HopperVolumeTable({
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Equipo / lineas</TableCell>
+              <TableCell>Equipo / líneas</TableCell>
               <TableCell>Recorridos</TableCell>
               <TableCell>Total tolvas</TableCell>
               <TableCell>Prom. tolvas por recorrido</TableCell>
@@ -1186,7 +1186,7 @@ function ComparisonTable({
               <TableCell>Recorridos</TableCell>
               <TableCell>Tolvas</TableCell>
               <TableCell>Tiempo prom.</TableCell>
-              <TableCell>Rapido</TableCell>
+              <TableCell>Rápido</TableCell>
               <TableCell>En rango</TableCell>
               <TableCell>Tarde</TableCell>
               <TableCell>Cumplimiento</TableCell>
@@ -1524,8 +1524,8 @@ function enrichRun(
     estado: run.cumplimiento ?? "en_rango",
     turnoId,
     grupo: person?.grupo,
-    grupoLabel: person ? formatGroup(person.grupo) : "Sin asignacion",
-    almacenista: person?.nombre ?? "Sin asignacion",
+    grupoLabel: person ? formatGroup(person.grupo) : "Sin asignación",
+    almacenista: person?.nombre ?? "Sin asignación",
     supervisor: supervisor?.nombre ?? "Sin supervisor",
     cierreAutomatico: run.cierreAutomatico,
     cierreMotivo: run.cierreMotivo,
@@ -1562,8 +1562,8 @@ function enrichOpenRun(
     estado: run.estado,
     turnoId,
     grupo: person?.grupo,
-    grupoLabel: person ? formatGroup(person.grupo) : "Sin asignacion",
-    almacenista: person?.nombre ?? "Sin asignacion",
+    grupoLabel: person ? formatGroup(person.grupo) : "Sin asignación",
+    almacenista: person?.nombre ?? "Sin asignación",
     tiempoTotalMin,
     tiempoObjetivoMin,
     variacionMin: tiempoTotalMin - tiempoObjetivoMin,
@@ -1815,12 +1815,12 @@ function toPercent(value: number, total: number) {
 function exportBitacoraToExcel(runs: ReportRun[], desde: string, hasta: string) {
   const headers = [
     "Fecha",
-    "Codigo equipo",
+    "Código equipo",
     "Grupo",
     "Turno",
     "Almacenista",
     "Supervisor",
-    "Lineas",
+    "Líneas",
     "Tolvas",
     "Entrada",
     "Salida",
@@ -1853,7 +1853,7 @@ function exportBitacoraToExcel(runs: ReportRun[], desde: string, hasta: string) 
     run.tiempoObjetivoMin,
     run.tiempoTotalMin - run.tiempoObjetivoMin,
     formatRunStatus(run.estado),
-    run.cierreAutomatico ? "Sistema cerro automaticamente" : "Escaneo manual",
+    run.cierreAutomatico ? "Sistema cerró automáticamente" : "Escaneo manual",
     run.cierreMotivo ?? "",
   ]);
 

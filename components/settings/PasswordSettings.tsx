@@ -69,7 +69,7 @@ export default function PasswordSettings() {
     if (password.trim().length < 6) {
       setMessage({
         type: "error",
-        text: "La nueva contrasena debe tener al menos 6 caracteres.",
+        text: "La nueva contraseña debe tener al menos 6 caracteres.",
       });
       return;
     }
@@ -77,7 +77,7 @@ export default function PasswordSettings() {
     if (password.trim() !== confirmPassword.trim()) {
       setMessage({
         type: "error",
-        text: "La confirmacion no coincide con la nueva contrasena.",
+        text: "La confirmación no coincide con la nueva contraseña.",
       });
       return;
     }
@@ -92,7 +92,7 @@ export default function PasswordSettings() {
     if (!result.ok) {
       setMessage({
         type: "error",
-        text: `No se pudo cambiar la contrasena: ${
+        text: `No se pudo cambiar la contraseña: ${
           result.error ?? "Revise Supabase Auth."
         }`,
       });
@@ -103,7 +103,7 @@ export default function PasswordSettings() {
     setConfirmPassword("");
     setMessage({
       type: "success",
-      text: "Contrasena actualizada correctamente.",
+      text: "Contraseña actualizada correctamente.",
     });
   }
 
@@ -122,10 +122,10 @@ export default function PasswordSettings() {
           <LockReset color="primary" />
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 800 }}>
-              Cambiar mi contrasena
+              Cambiar mi contraseña
             </Typography>
             <Typography color="text.secondary">
-              Actualice la clave del usuario con sesion iniciada.
+              Actualice la clave del usuario con sesión iniciada.
             </Typography>
           </Box>
         </Stack>
@@ -153,14 +153,14 @@ export default function PasswordSettings() {
         }}
       >
         <TextField
-          label="Nueva contrasena"
+          label="Nueva contraseña"
           type="password"
           value={password}
           disabled={loading || saving || !accessUser}
           onChange={(event) => setPassword(event.target.value)}
         />
         <TextField
-          label="Confirmar contrasena"
+          label="Confirmar contraseña"
           type="password"
           value={confirmPassword}
           disabled={loading || saving || !accessUser}

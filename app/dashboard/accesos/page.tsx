@@ -109,7 +109,7 @@ export default function Page() {
     ) {
       setMessage({
         type: "error",
-        text: "Complete SAP ID, nombre y contrasena inicial para crear el acceso.",
+        text: "Complete SAP ID, nombre y contraseña inicial para crear el acceso.",
       });
       return;
     }
@@ -128,7 +128,7 @@ export default function Page() {
     if (!saved) {
       setMessage({
         type: "error",
-        text: "No se pudo crear el acceso. Revise si el SAP ID ya existe o si Supabase Auth rechazo la contrasena.",
+        text: "No se pudo crear el acceso. Revise si el SAP ID ya existe o si Supabase Auth rechazó la contraseña.",
       });
       return;
     }
@@ -193,7 +193,7 @@ export default function Page() {
     if (!password) {
       setMessage({
         type: "error",
-        text: `Ingrese una nueva contrasena para ${user.nombre}.`,
+        text: `Ingrese una nueva contraseña para ${user.nombre}.`,
       });
       return;
     }
@@ -203,7 +203,7 @@ export default function Page() {
     if (!result.ok) {
       setMessage({
         type: "error",
-        text: `No se pudo cambiar la contrasena de ${user.nombre}: ${
+        text: `No se pudo cambiar la contraseña de ${user.nombre}: ${
           result.error ?? "Revise Supabase Auth."
         }`,
       });
@@ -213,7 +213,7 @@ export default function Page() {
     setPasswordDrafts((current) => ({ ...current, [user.id]: "" }));
     setMessage({
       type: "success",
-      text: `Contrasena actualizada para ${user.nombre}.`,
+      text: `Contraseña actualizada para ${user.nombre}.`,
     });
   }
 
@@ -295,7 +295,7 @@ export default function Page() {
               Crear acceso
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              El ingreso sera con SAP ID y contrasena. No se captura correo.
+              El ingreso será con SAP ID y contraseña. No se captura correo.
             </Typography>
           </Box>
           <Chip
@@ -331,7 +331,7 @@ export default function Page() {
             }
           />
           <TextField
-            label="Contrasena inicial"
+            label="Contraseña inicial"
             type="password"
             value={draft.password}
             sx={{ gridColumn: { md: "span 2" } }}
@@ -393,7 +393,7 @@ export default function Page() {
             Accesos registrados
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Cambie rol, grupo, estado o contrasena sin afectar el historico de
+            Cambie rol, grupo, estado o contraseña sin afectar el histórico de
             recorridos.
           </Typography>
         </Stack>
@@ -476,7 +476,7 @@ export default function Page() {
                       <TextField
                         size="small"
                         type="password"
-                        label="Nueva contrasena"
+                        label="Nueva contraseña"
                         value={passwordDrafts[user.id] ?? ""}
                         slotProps={{
                           input: {

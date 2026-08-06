@@ -48,7 +48,7 @@ export const MENU: MenuItem[] = [
     icon: AccountTree,
   },
   {
-    title: "Asignacion Semanal",
+    title: "Asignación semanal",
     path: "/dashboard/asignaciones",
     icon: CalendarMonth,
   },
@@ -73,12 +73,12 @@ export const MENU: MenuItem[] = [
     icon: BarChart,
   },
   {
-    title: "Configuracion",
+    title: "Configuración",
     path: "/dashboard/configuracion",
     icon: Settings,
   },
   {
-    title: "About",
+    title: "Acerca de",
     path: "/dashboard/about",
     icon: Info,
   },

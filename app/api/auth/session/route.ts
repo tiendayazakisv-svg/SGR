@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
   if (!cleanSapId || !cleanPassword) {
     return NextResponse.json(
-      { error: "Ingrese SAP ID y contrasena." },
+      { error: "Ingrese SAP ID y contraseña." },
       { status: 400 }
     );
   }
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
 
   if (!passwordHash || !verifyPassword(cleanPassword, passwordHash)) {
     return NextResponse.json(
-      { error: "SAP ID o contrasena incorrecta." },
+      { error: "SAP ID o contraseña incorrecta." },
       { status: 401 }
     );
   }

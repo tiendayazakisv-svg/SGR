@@ -7,10 +7,10 @@ export default function Page() {
     <>
       <Box sx={{ mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 800 }}>
-          Asignacion semanal
+          Asignación semanal
         </Typography>
         <Typography color="text.secondary">
-          Cambios de lineas, facilitadores, coberturas por ausencia y rotacion quincenal.
+          Cambios de lineas, facilitadores, coberturas por ausencia y rotación quincenal.
         </Typography>
       </Box>
 

@@ -84,7 +84,7 @@ export default function KioskoPage() {
   const [now, setNow] = useState<Date | null>(null);
   const [message, setMessage] = useState({
     severity: "info" as "success" | "info" | "warning" | "error",
-    text: "Escanee el cÃ³digo de barras del equipo de lÃ­neas.",
+    text: "Escanee el código de barras del equipo de líneas.",
   });
   const [quickResult, setQuickResult] = useState<CompletedKioskRun | null>(null);
   const [savingRun, setSavingRun] = useState(false);
@@ -217,7 +217,7 @@ export default function KioskoPage() {
     if (!lineGroup) {
       setMessage({
         severity: "error",
-        text: "CÃ³digo de equipo no encontrado. Configure el cÃ³digo en LÃ­neas y equipos.",
+        text: "Código de equipo no encontrado. Configure el código en Líneas y equipos.",
       });
       return;
     }
@@ -324,7 +324,7 @@ export default function KioskoPage() {
       setBarcode("");
       setMessage({
         severity: "warning",
-        text: "El turno actual ya no corresponde a esta entrada pendiente. Escanee nuevamente el equipo cuando el grupo y turno esten habilitados.",
+        text: "El turno actual ya no corresponde a esta entrada pendiente. Escanee nuevamente el equipo cuando el grupo y turno estén habilitados.",
       });
       return;
     }
@@ -334,7 +334,7 @@ export default function KioskoPage() {
     if (!Number.isInteger(parsedTolvas) || parsedTolvas <= 0) {
       setMessage({
         severity: "warning",
-        text: "Digite una cantidad valida de tolvas.",
+        text: "Digite una cantidad válida de tolvas.",
       });
       return;
     }
@@ -382,7 +382,7 @@ export default function KioskoPage() {
       setBarcode("");
       setMessage({
         severity: "success",
-        text: `Entrada registrada. ${nextRun.assignedPerson?.nombre ?? "Almacenista"} estÃƒÂ¡ llenando carro para equipo ${formatLines(nextRun.group.lineas)} con ${nextRun.tolvas} tolvas.`,
+        text: `Entrada registrada. ${nextRun.assignedPerson?.nombre ?? "Almacenista"} está llenando carro para equipo ${formatLines(nextRun.group.lineas)} con ${nextRun.tolvas} tolvas.`,
       });
     } finally {
       setSavingRun(false);
@@ -467,8 +467,8 @@ export default function KioskoPage() {
       severity: cumplimiento === "tarde" ? "warning" : "success",
       text:
         activeShiftAtReturn === run.assignment?.turnoId
-          ? `${getCompletionFaceText(cumplimiento)} Recorrido cerrado para ${run.assignedPerson?.nombre ?? "almacenista"}. Equipo ${formatLines(run.group.lineas)} total ${completed.tiempoTotalMin} min, objetivo ${run.group.tiempoObjetivoMin} min. Digite tolvas para iniciar el siguiente recorrido; la nueva entrada quedo marcada a las ${formatTime(retornoAt)}.`
-          : `${getCompletionFaceText(cumplimiento)} Recorrido cerrado para ${run.assignedPerson?.nombre ?? "almacenista"}. Equipo ${formatLines(run.group.lineas)} total ${completed.tiempoTotalMin} min, objetivo ${run.group.tiempoObjetivoMin} min. El turno ya no esta habilitado para iniciar otro recorrido.`,
+          ? `${getCompletionFaceText(cumplimiento)} Recorrido cerrado para ${run.assignedPerson?.nombre ?? "almacenista"}. Equipo ${formatLines(run.group.lineas)} total ${completed.tiempoTotalMin} min, objetivo ${run.group.tiempoObjetivoMin} min. Digite tolvas para iniciar el siguiente recorrido; la nueva entrada quedó marcada a las ${formatTime(retornoAt)}.`
+          : `${getCompletionFaceText(cumplimiento)} Recorrido cerrado para ${run.assignedPerson?.nombre ?? "almacenista"}. Equipo ${formatLines(run.group.lineas)} total ${completed.tiempoTotalMin} min, objetivo ${run.group.tiempoObjetivoMin} min. El turno ya no está habilitado para iniciar otro recorrido.`,
     });
   }
 
@@ -489,7 +489,7 @@ export default function KioskoPage() {
               Kiosko de abastecimiento
             </Typography>
             <Typography color="text.secondary">
-              Entrada, salida y retorno por cÃ³digo de equipo asociado a un almacenista.
+              Entrada, salida y retorno por código de equipo asociado a un almacenista.
             </Typography>
           </Box>
 
@@ -651,7 +651,7 @@ export default function KioskoPage() {
             icon={<QrCodeScanner />}
             label="Equipos configurados"
             value={String(lineGroups.length)}
-            detail="Codigos disponibles"
+            detail="Códigos disponibles"
             color="secondary.main"
           />
         </Box>
@@ -672,10 +672,10 @@ export default function KioskoPage() {
                   <QrCodeScanner color="primary" fontSize="large" />
                   <Box>
                     <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                      Escanear cÃ³digo de equipo
+                      Escanear código de equipo
                     </Typography>
                     <Typography color="text.secondary">
-                      Escanee el equipo. Si no hay recorrido activo, solicita tolvas. Si ya esta activo, registra salida o retorno.
+                      Escanee el equipo. Si no hay recorrido activo, solicita tolvas. Si ya está activo, registra salida o retorno.
                     </Typography>
                   </Box>
                 </Stack>
@@ -683,7 +683,7 @@ export default function KioskoPage() {
                 <TextField
                   autoFocus
                   fullWidth
-                  label="CÃ³digo de barras del equipo"
+                  label="Código de barras del equipo"
                   value={barcode}
                   onChange={(event) => setBarcode(event.target.value)}
                   onKeyDown={(event) => {
@@ -706,7 +706,7 @@ export default function KioskoPage() {
 
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                    CÃ³digos configurados desde LÃ­neas y equipos
+                    Códigos configurados desde Líneas y equipos
                   </Typography>
                   <Stack direction="row" sx={{ gap: 1, flexWrap: "wrap" }}>
                     {lineGroups.map((group) => (
@@ -776,7 +776,7 @@ export default function KioskoPage() {
                       setTolvas("");
                       setMessage({
                         severity: "info",
-                        text: "Escanee el cÃ³digo de barras del equipo de lÃ­neas.",
+                        text: "Escanee el código de barras del equipo de líneas.",
                       });
                     }}
                   >
@@ -795,13 +795,13 @@ export default function KioskoPage() {
                     Recorridos cerrados
                   </Typography>
                   <Typography color="text.secondary">
-                    Ultimos recorridos de la sesion.
+                    Ãšltimos recorridos de la sesión.
                   </Typography>
                 </Box>
               </Stack>
 
               {completedRuns.length === 0 ? (
-                <Typography color="text.secondary">Aun no hay recorridos cerrados.</Typography>
+                <Typography color="text.secondary">Aún no hay recorridos cerrados.</Typography>
               ) : (
                 <Stack spacing={1.25}>
                   <CompletionResult run={completedRuns[0]} featured />
@@ -990,7 +990,7 @@ function PausedPersonnelPanel({
             Personal en pausa
           </Typography>
           <Typography color="text.secondary">
-            Se reactiva automaticamente al escanear su equipo.
+            Se reactiva automáticamente al escanear su equipo.
           </Typography>
         </Box>
       </Stack>
@@ -1090,7 +1090,7 @@ function RunCard({ run, now }: { run: ActiveKioskRun; now: Date }) {
           Equipo {formatLines(run.group.lineas)}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Almacenista: {run.assignedPerson?.nombre ?? "Sin asignaciÃ³n"}
+          Almacenista: {run.assignedPerson?.nombre ?? "Sin asignación"}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {run.step === "llenando_carro"
@@ -1182,7 +1182,7 @@ function buildShiftMismatchMessage(
   });
 
   if (validAssignments.length === 0) {
-    return `El equipo ${formatLines(group.lineas)} no tiene asignacion vigente. Asigne el equipo al grupo y almacenista correspondiente antes de iniciar.`;
+    return `El equipo ${formatLines(group.lineas)} no tiene asignación vigente. Asigne el equipo al grupo y almacenista correspondiente antes de iniciar.`;
   }
 
   const details = validAssignments

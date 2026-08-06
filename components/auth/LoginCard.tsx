@@ -41,7 +41,7 @@ export default function LoginCard() {
               Acceso operativo
             </Typography>
             <Typography sx={{ color: "rgba(255,255,255,0.74)" }}>
-              Ingrese con SAP ID y contrasena
+              Ingrese con SAP ID y contraseña
             </Typography>
           </Box>
         </Stack>
@@ -76,7 +76,7 @@ export default function LoginCard() {
           }}
         >
           <Typography variant="caption" color="text.secondary">
-            Administrador inicial: SAP ID ADMIN. Cambie la contrasena desde
+            Administrador inicial: SAP ID ADMIN. Cambie la contraseña desde
             Accesos despues del primer ingreso.
           </Typography>
         </Box>

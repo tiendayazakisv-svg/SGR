@@ -174,7 +174,7 @@ export default function PersonnelCrud() {
             ))}
           </TextField>
           <TextField
-            label="Codigo de barras"
+            label="Código de barras"
             value={draft.codigoBarras}
             onChange={(event) =>
               setDraft((current) => ({ ...current, codigoBarras: event.target.value }))
@@ -199,7 +199,7 @@ export default function PersonnelCrud() {
               <TableCell>Puesto</TableCell>
               <TableCell>Grupo</TableCell>
               <TableCell>Turno</TableCell>
-              <TableCell>Codigo</TableCell>
+              <TableCell>Código</TableCell>
               <TableCell>Estado</TableCell>
               <TableCell />
             </TableRow>

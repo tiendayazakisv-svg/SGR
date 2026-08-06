@@ -25,7 +25,7 @@ export default function LoginForm() {
 
   async function handleLogin() {
     if (!sapId.trim() || !password.trim()) {
-      setError("Ingrese SAP ID y contrasena.");
+      setError("Ingrese SAP ID y contraseña.");
       return;
     }
 
@@ -71,7 +71,7 @@ export default function LoginForm() {
       />
 
       <TextField
-        label="Contrasena"
+        label="Contraseña"
         type="password"
         fullWidth
         value={password}
@@ -123,5 +123,5 @@ function formatLoginError(error: unknown) {
     return error;
   }
 
-  return "No se pudo iniciar sesion. Verifique SAP ID, contrasena y que el usuario exista en Supabase Auth.";
+  return "No se pudo iniciar sesión. Verifique SAP ID, contraseña y que el usuario exista en Supabase Auth.";
 }

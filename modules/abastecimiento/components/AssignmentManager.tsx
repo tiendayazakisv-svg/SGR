@@ -434,7 +434,7 @@ export default function AssignmentManager({ initialAssignments }: Props) {
               Resumen de asignaciones
             </Typography>
             <Typography color="text.secondary">
-              Vista operativa segun el usuario con sesion iniciada.
+              Vista operativa segun el usuario con sesión iniciada.
             </Typography>
           </Box>
           <Stack direction="row" sx={{ gap: 1, flexWrap: "wrap" }}>
@@ -491,7 +491,7 @@ export default function AssignmentManager({ initialAssignments }: Props) {
               Asignar equipo a almacenista
             </Typography>
             <Typography color="text.secondary">
-              Seleccione el almacenista, confirme supervisor/facilitador y asocie el equipo de lineas que escaneara en kiosko. El historico se conserva.
+              Seleccione el almacenista, confirme supervisor/facilitador y asocie el equipo de líneas que escaneara en kiosko. El histórico se conserva.
             </Typography>
           </Box>
           <Button
@@ -830,7 +830,7 @@ export default function AssignmentManager({ initialAssignments }: Props) {
         </Typography>
         <Typography color="text.secondary" sx={{ mb: 2 }}>
           {isSupervisor
-            ? "Solo se muestra la asignacion del grupo del supervisor con sesion iniciada."
+            ? "Solo se muestra la asignacion del grupo del supervisor con sesión iniciada."
             : "El mismo equipo puede estar asignado a ambos grupos con distinto almacenista, turno, tiempo y cumplimiento."}
         </Typography>
 
@@ -980,7 +980,7 @@ export default function AssignmentManager({ initialAssignments }: Props) {
 
       <Paper elevation={0} sx={{ p: 2, borderRadius: 2 }}>
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-          Historico
+          Histórico
         </Typography>
 
         <AssignmentTable
@@ -1321,7 +1321,7 @@ function AssignmentTable({
           <TableCell>Supervisor</TableCell>
           <TableCell>Facilitador</TableCell>
           <TableCell>Equipo</TableCell>
-          <TableCell>Lineas</TableCell>
+          <TableCell>Líneas</TableCell>
           <TableCell>Contador</TableCell>
           <TableCell>Cobertura</TableCell>
           {showDates && <TableCell>Vigencia</TableCell>}

@@ -297,7 +297,7 @@ export default function LinesCrud() {
             inputMode="numeric"
           />
           <TextField
-            label="Rapido min"
+            label="Rápido min"
             value={groupDraft.toleranciaRapidoMin}
             onChange={(event) =>
               setGroupDraft((current) => ({
