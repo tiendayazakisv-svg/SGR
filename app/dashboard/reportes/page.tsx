@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -310,7 +310,7 @@ export default function Page() {
             select
             label="Grupo"
             value={selectedGroup ?? "todos"}
-            disabled={Boolean(forcedGroup && forcedGroup !== "todos")}
+            disabled={Boolean(forcedGroup)}
             onChange={(event) =>
               setFilters((current) => ({
                 ...current,
